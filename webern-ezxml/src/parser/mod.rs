@@ -49,9 +49,21 @@ pub fn parse<R: BufRead>(r: &mut R) -> error::Result<structure::Document> {
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash, Default)]
 struct Position {
-    pub line: u64,
-    pub column: u64,
-    pub absolute: u64,
+    line: u64,
+    column: u64,
+    absolute: u64,
+}
+
+impl Position {
+    fn increment(&mut self, current_char: &char) {
+        self.absolute += 1;
+        if current_char == &'\n' {
+            self.line += 1;
+            self.column = 0;
+        } else {
+            self.column += 1;
+        }
+    }
 }
 
 // Comparison traits: Eq, PartialEq, Ord, PartialOrd.
@@ -67,19 +79,15 @@ struct ParserState {
 }
 
 pub fn parse_str(s: &str) -> error::Result<structure::Document> {
-    let mut pos = Position {
-        line: 0,
-        column: 0,
-        absolute: 0,
-    };
+    let mut state = ParserState { position: Default::default() };
     for c in s.chars() {
-        trace!("{}: {:?}", c, pos);
-        pos.absolute += 1;
+        trace!("{}: {:?}", c, state);
+        state.position.absolute += 1;
         if c == '\n' {
-            pos.line += 1;
-            pos.column = 0;
+            state.position.line += 1;
+            state.position.column = 0;
         } else {
-            pos.column += 1;
+            state.position.column += 1;
         }
     }
     Ok(structure::Document {

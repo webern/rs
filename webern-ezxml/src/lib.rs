@@ -3,3 +3,4 @@ extern crate log;
 
 mod parser;
 mod structure;
+mod error;

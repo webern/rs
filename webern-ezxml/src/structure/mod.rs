@@ -20,10 +20,10 @@ pub struct Attribute {
 }
 
 pub struct Element {
-    parser_metadata: ParserMetadata,
-    namespace: Option<String>,
-    name: String,
-    content: ElementContent,
+    pub parser_metadata: ParserMetadata,
+    pub namespace: Option<String>,
+    pub name: String,
+    pub content: ElementContent,
 }
 
 pub enum Location {
@@ -32,10 +32,10 @@ pub enum Location {
 }
 
 pub struct ProcessingInstruction {
-    parser_metadata: ParserMetadata,
-    location: Location,
-    target: String,
-    data: String,
+    pub parser_metadata: ParserMetadata,
+    pub location: Location,
+    pub target: String,
+    pub data: String,
 }
 
 pub enum XmlVersion {
@@ -48,9 +48,9 @@ pub enum Encoding {
 }
 
 pub struct Document {
-    version: Option<XmlVersion>,
-    encoding: Option<Encoding>,
-    root: Element,
+    pub version: Option<XmlVersion>,
+    pub encoding: Option<Encoding>,
+    pub root: Element,
 }
 
 pub fn max_element_depth(element: &Element) -> u64 {

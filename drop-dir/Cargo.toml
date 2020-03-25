@@ -1,0 +1,11 @@
+[package]
+name = "drop-dir"
+version = "0.0.0"
+authors = ["Matt Briggs"]
+readme = "./README.md"
+repository = "https://github.com/webern/webern-rs"
+
+[dependencies]
+
+[dev-dependencies]
+uuid = { version = "0.8.1", features = ["v4"] }

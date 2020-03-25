@@ -1,0 +1,10 @@
+[package]
+name = "drop-dir"
+version = "0.0.0"
+authors = ["Matt Briggs"]
+autobins = false
+readme = "./README.md"
+
+[dependencies]
+
+[dev-dependencies]

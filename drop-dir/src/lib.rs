@@ -82,8 +82,7 @@ impl DropDir {
 
 #[cfg(test)]
 mod tests {
-    use std::fs::File;
-    use std::path::{Path, PathBuf};
+    use std::path::Path;
 
     use uuid::Uuid;
 
@@ -92,10 +91,10 @@ mod tests {
     #[test]
     fn test() {
         let uuid = Uuid::new_v4().to_string();
-        let path_buf = PathBuf::from(std::env::temp_dir().join(uuid));
+        let path_buf = std::env::temp_dir().join(uuid);
         // Create a drop_dir within a scope
         {
-            let drop_dir = DropDir::new(PathBuf::from(path_buf.clone())).unwrap();
+            let _drop_dir = DropDir::new(path_buf.clone()).unwrap();
             assert!(Path::new(&path_buf).exists())
         }
         assert!(!Path::new(&path_buf).exists())

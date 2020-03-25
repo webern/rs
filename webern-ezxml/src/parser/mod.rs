@@ -6,13 +6,45 @@ use std::string::ParseError;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
-use crate::error::{self, Result};
+use crate::error::{self, Result, Error};
 use crate::structure;
 use crate::structure::{Element, ElementContent, ParserMetadata};
+use crate::parser::DocState::BeforeFirstTag;
+use std::str::Chars;
 
 // mod error;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
+enum DocState {
+    BeforeFirstTag,
+    XmlDeclaration,
+    Doctype,
+    RootElement,
+}
+
+impl Default for DocState {
+    fn default() -> Self { DocState::BeforeFirstTag }
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
+enum Processing {
+    Unknown,
+    DocStart,
+    XmlDeclaration,
+    DoctypeDeclaration,
+    RootElement,
+    // Tag,
+    // TagNameOrNamespace,
+    // TagName,
+    // DoneProcessingNamespace,
+    // DoneProcessingTagName,
+    // AttributeName,
+    // AttributeOpenQuotes,
+    // AttributeValue,
+    // Processing
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 enum GrammarItem {
     ElementOpen,
     ElementClose,
@@ -24,7 +56,7 @@ enum GrammarItem {
     ProcessingData,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 enum CharItem {
     OpenAngle,
     ClosingSlash,
@@ -74,22 +106,25 @@ impl Position {
 // Debug, to format a value using the {:?} formatter.
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash, Default)]
-struct ParserState {
-    position: Position,
+pub struct ParserState {
+    pub position: Position,
+    pub doc_state: DocState,
+    pub current_char: char,
 }
 
 pub fn parse_str(s: &str) -> error::Result<structure::Document> {
-    let mut state = ParserState { position: Default::default() };
-    for c in s.chars() {
-        trace!("{}: {:?}", c, state);
-        state.position.absolute += 1;
-        if c == '\n' {
-            state.position.line += 1;
-            state.position.column = 0;
-        } else {
-            state.position.column += 1;
-        }
+    let mut state = ParserState {
+        position: Default::default(),
+        doc_state: DocState::BeforeFirstTag,
+        current_char: '\0',
+    };
+
+    let mut iter = s.chars();
+    while let Some(c) = iter.next() {
+        state.current_char = c;
+        process_current(&mut iter, &mut state)?;
     }
+
     Ok(structure::Document {
         version: None,
         encoding: None,
@@ -102,12 +137,62 @@ pub fn parse_str(s: &str) -> error::Result<structure::Document> {
     })
 }
 
+fn process_current(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
+    trace!("{:?}", state);
+    let c = state.current_char.unwrap();
+    state.position.absolute += 1;
+    advance_state_position(c, state);
+    match state.doc_state {
+        DocState::RootElement => {},
+        BeforeFirstTag => {
+            if c.is_ascii_whitespace() {
+                // Keep advancing until we get to the first tag.
+                return Ok(())
+            } else if c == '<' {
+
+            } else {
+                return Err(Error::Parse{ parser_state: state.into(), backtrace: Backtrace::generate() })
+            }
+        },
+        DocState::XmlDeclaration => {},
+        DocState::Doctype => {},
+    }
+    Ok(())
+}
+
+fn advance_state_position(current: char, state: &mut ParserState) {
+    if current == '\n' {
+        state.position.line += 1;
+        state.position.column = 0;
+    } else {
+        state.position.column += 1;
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // TESTS
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
 mod tests {
+
+    const XML1: &str = r##"
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE something PUBLIC "-//Some//Path//EN" "http://www.example.org/dtds/partwise.dtd">
+<cats>
+  <cat id="b1">
+    <name>
+        Bones
+    </name>
+  <birthdate>2008-06-01</birthdate>
+  </cat>
+  <cat id="b2">
+    <name>Bishop</name>
+    <birthdate>2012-01-01</birthdate>
+  </cat>
+</cats>
+    "##;
+
     use super::*;
 
     fn init_logger() {
@@ -118,7 +203,7 @@ mod tests {
     #[test]
     fn parse_a_doo_dah() {
         init_logger();
-        let the_thing = "Hello World!\nMy Name is Bones.\nI am a cat!";
+        let the_thing = XML1;
         let _ = parse_str(the_thing).unwrap();
     }
 }

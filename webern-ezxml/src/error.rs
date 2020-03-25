@@ -1,13 +1,11 @@
-// Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT OR Apache-2.0
-
-//! Contains the error type for this library.
+// Copyright 2020 by Matthew James Briggs
 
 #![allow(clippy::default_trait_access)]
 
 use std::path::PathBuf;
 
 use snafu::{Backtrace, Snafu};
+use crate::parser::ParserState;
 
 /// Alias for `Result<T, Error>`.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -23,9 +21,9 @@ pub struct ParseLocation {
 #[snafu(visibility = "pub(crate)")]
 pub enum Error {
     /// A failure while parsing xml.
-    #[snafu(display("Failure while parsing: {:?}", parse_location))]
+    #[snafu(display("Failure while parsing: {:?}", parser_state.location))]
     Parse {
-        parse_location: ParseLocation,
+        parser_state: ParserState,
         backtrace: Backtrace,
     },
     IoRead {

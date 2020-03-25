@@ -1,6 +1,9 @@
 // Copyright 2020 by Matthew James Briggs
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+#[cfg(test)]
+extern crate uuid;
+
 use std::fs;
 use std::ops::Drop;
 use std::path::PathBuf;
@@ -14,7 +17,7 @@ use std::path::PathBuf;
 /// use drop_dir::DropDir;
 /// use std::fs::File;
 ///
-/// let drop_dir = DropDir::new(PathBuf::from("/tmp/some/temp/path")).unwrap();
+/// let drop_dir = DropDir::new(PathBuf::from("/tmp/some/path")).unwrap();
 /// let mut file = File::create(drop_dir.path().join("file.txt")).unwrap();
 /// // drop_dir deleted when it goes out of scope.
 /// ```
@@ -23,6 +26,7 @@ use std::path::PathBuf;
 /// In the example above, only the last component of the `drop_dir` is removed.
 /// That is, the dir `/tmp/some/temp/path` is deleted, but `/tmp/some/temp` remains.
 /// Any other behavior would get complicated.
+///
 pub struct DropDir {
     path_buf: PathBuf,
 }
@@ -51,7 +55,7 @@ impl DropDir {
     /// # use std::path::PathBuf;
     /// # use drop_dir::DropDir;
     /// # use std::fs::File;
-    /// let drop_dir = DropDir::new(PathBuf::from("/tmp/some/temporary/path")).unwrap();
+    /// let drop_dir = DropDir::new(PathBuf::from("/tmp/some/path")).unwrap();
     /// ```
     pub fn new(path_buf: PathBuf) -> Result<DropDir, std::io::Error> {
         fs::create_dir_all(&path_buf)?;
@@ -68,10 +72,32 @@ impl DropDir {
     /// # use std::path::PathBuf;
     /// # use drop_dir::DropDir;
     /// # use std::fs::File;
-    /// # let drop_dir = DropDir::new(PathBuf::from("/tmp/some/temporary/path")).unwrap();
+    /// # let drop_dir = DropDir::new(PathBuf::from("/tmp/some/path")).unwrap();
     /// let path_str = drop_dir.path().to_string_lossy();
     /// ```
     pub fn path(&self) -> PathBuf {
         self.path_buf.clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs::File;
+    use std::path::{Path, PathBuf};
+
+    use uuid::Uuid;
+
+    use super::*;
+
+    #[test]
+    fn test() {
+        let uuid = Uuid::new_v4().to_string();
+        let path_buf = PathBuf::from(std::env::temp_dir().join(uuid));
+        // Create a drop_dir within a scope
+        {
+            let drop_dir = DropDir::new(PathBuf::from(path_buf.clone())).unwrap();
+            assert!(Path::new(&path_buf).exists())
+        }
+        assert!(!Path::new(&path_buf).exists())
     }
 }

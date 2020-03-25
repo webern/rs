@@ -8,3 +8,4 @@ readme = "./README.md"
 [dependencies]
 
 [dev-dependencies]
+uuid = { version = "0.8.1", features = ["v4"] }

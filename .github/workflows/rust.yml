@@ -2,10 +2,9 @@ name: Rust
 
 on:
   push:
-    # drop-dir is temporary, remove later
-    branches: [ master, drop-dir ]
-  pull_request:
     branches: [ master ]
+  pull_request:
+    branches: [ * ]
 
 jobs:
   build:

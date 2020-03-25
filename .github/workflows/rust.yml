@@ -13,14 +13,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Update Rust Toolchain
-      run: rustup update stable
-    - name: Check Code Formatting
-      run: cargo fmt -- --check
-    - name: Run Linter
-      run: cargo clippy --locked -- -D warnings
-    - name: Build drop-dir
-      run: cargo build --locked -p drop-dir
-    - name: Test drop-dir
-      run: cd drop-dir && cargo test --all-features --locked
+      - uses: actions/checkout@v2
+      - name: Update Rust Toolchain
+        run: rustup update stable
+      - name: Check Code Formatting
+        run: cargo fmt -- --check
+      - name: Run Linter
+        run: cargo clippy --locked -- -D warnings
+      - name: Run Linter on Tests
+        run: cargo clippy --tests --locked -- -D warnings
+      - name: Build drop-dir
+        run: cargo build --locked -p drop-dir
+      - name: Test drop-dir
+        run: cd drop-dir && cargo test --all-features --locked

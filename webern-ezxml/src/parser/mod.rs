@@ -15,7 +15,7 @@ use std::str::Chars;
 // mod error;
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
-enum DocState {
+pub enum DocState {
     BeforeFirstTag,
     XmlDeclaration,
     Doctype,
@@ -80,10 +80,10 @@ pub fn parse<R: BufRead>(r: &mut R) -> error::Result<structure::Document> {
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash, Default)]
-struct Position {
-    line: u64,
-    column: u64,
-    absolute: u64,
+pub struct Position {
+    pub line: u64,
+    pub column: u64,
+    pub absolute: u64,
 }
 
 impl Position {
@@ -139,7 +139,7 @@ pub fn parse_str(s: &str) -> error::Result<structure::Document> {
 
 fn process_current(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
     trace!("{:?}", state);
-    let c = state.current_char.unwrap();
+    let c = state.current_char;
     state.position.absolute += 1;
     advance_state_position(c, state);
     match state.doc_state {
@@ -151,7 +151,7 @@ fn process_current(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
             } else if c == '<' {
 
             } else {
-                return Err(Error::Parse{ parser_state: state.into(), backtrace: Backtrace::generate() })
+                return Err(Error::Parse{ parser_state: state.clone(), backtrace: Backtrace::generate() })
             }
         },
         DocState::XmlDeclaration => {},

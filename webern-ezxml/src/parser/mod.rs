@@ -112,6 +112,13 @@ pub struct ParserState {
     pub current_char: char,
 }
 
+#[derive(Debug, Clone)]
+pub struct  Parser<'a> {
+    pub parser_state: ParserState,
+    pub data: &'a str,
+    pub iter: Chars<'a>
+}
+
 pub fn parse_str(s: &str) -> error::Result<structure::Document> {
     let mut state = ParserState {
         position: Default::default(),
@@ -149,7 +156,7 @@ fn process_current(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
                 // Keep advancing until we get to the first tag.
                 return Ok(())
             } else if c == '<' {
-
+                state.doc_state = DocState::XmlDeclaration;
             } else {
                 return Err(Error::Parse{ parser_state: state.clone(), backtrace: Backtrace::generate() })
             }

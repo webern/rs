@@ -6,6 +6,11 @@
       <sourceFolder url="file://$MODULE_DIR$/webern-ezxml/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/webern-ezxml/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/webern-ezxml/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/drop-dir/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/drop-dir/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/drop-dir/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/drop-dir/benches" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/drop-dir/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/webern-ezxml/target" />
     </content>

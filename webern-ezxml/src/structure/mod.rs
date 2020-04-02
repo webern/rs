@@ -13,10 +13,10 @@ pub struct Namespace {
 }
 
 pub struct Attribute {
-    parser_metadata: ParserMetadata,
-    namespace: Option<String>,
-    name: String,
-    value: String,
+    pub parser_metadata: ParserMetadata,
+    pub namespace: Option<String>,
+    pub name: String,
+    pub value: String,
 }
 
 pub struct Element {
@@ -26,30 +26,30 @@ pub struct Element {
     pub content: ElementContent,
 }
 
-pub enum Location {
-    BeforeElement,
-    AfterElement,
-}
+// pub enum Location {
+//     BeforeElement,
+//     AfterElement,
+// }
 
-pub struct ProcessingInstruction {
-    pub parser_metadata: ParserMetadata,
-    pub location: Location,
-    pub target: String,
-    pub data: String,
-}
+// pub struct ProcessingInstruction {
+//     pub parser_metadata: ParserMetadata,
+//     pub location: Location,
+//     pub target: String,
+//     pub data: String,
+// }
 
-pub enum XmlVersion {
-    Version10,
-    Version11,
-}
+// pub enum XmlVersion {
+//     Version10,
+//     Version11,
+// }
 
-pub enum Encoding {
-    UTF8,
-}
+// pub enum Encoding {
+//     UTF8,
+// }
 
 pub struct Document {
-    pub version: Option<XmlVersion>,
-    pub encoding: Option<Encoding>,
+    // pub version: Option<XmlVersion>,
+    // pub encoding: Option<Encoding>,
     pub root: Element,
 }
 
@@ -84,8 +84,8 @@ mod tests {
     fn structs_test() {
         init_logger();
         let doc = Document {
-            version: None,
-            encoding: None,
+            // version: None,
+            // encoding: None,
             root: Element {
                 parser_metadata: ParserMetadata {},
                 namespace: None,
@@ -108,7 +108,7 @@ mod tests {
                         namespace: None,
                         name: "c".into(),
                         content: ElementContent::Text("2".into()),
-                    }
+                    },
                 ]),
             },
         };

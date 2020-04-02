@@ -1,15 +1,16 @@
 extern crate env_logger;
 
-use std::fs::File;
-use std::io::{BufReader, prelude::*};
-use std::string::ParseError;
+use std::io::prelude::*;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
-use crate::error::{self, Result, Error};
-use crate::structure;
-use crate::structure::{Element, ElementContent, ParserMetadata};
+use crate::error::Error::Bug;
+use crate::error::{self, Result};
 use crate::parser::DocState::BeforeFirstTag;
+use crate::parser::TagStatus::{InsideTag, OutsideTag, TagOpen};
+use crate::parser::UserDataStatus::Outside;
+use crate::structure;
+use crate::structure::{ElementContent, ParserMetadata};
 use std::str::Chars;
 
 // mod error;
@@ -23,55 +24,22 @@ pub enum DocState {
 }
 
 impl Default for DocState {
-    fn default() -> Self { DocState::BeforeFirstTag }
+    fn default() -> Self {
+        DocState::BeforeFirstTag
+    }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
-enum Processing {
-    Unknown,
-    DocStart,
-    XmlDeclaration,
-    DoctypeDeclaration,
-    RootElement,
-    // Tag,
-    // TagNameOrNamespace,
-    // TagName,
-    // DoneProcessingNamespace,
-    // DoneProcessingTagName,
-    // AttributeName,
-    // AttributeOpenQuotes,
-    // AttributeValue,
-    // Processing
-}
+// Comparison traits: Eq, PartialEq, Ord, PartialOrd.
+// Clone, to create T from &T via a copy.
+// Copy, to give a type 'copy semantics' instead of 'move semantics'.
+// Hash, to compute a hash from &T.
+// Default, to create an empty instance of a data type.
+// Debug, to format a value using the {:?} formatter.
+// #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 
-#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
-enum GrammarItem {
-    ElementOpen,
-    ElementClose,
-    ElementSelfClosing,
-    Attribute,
-    TextData,
-    ProcessingOpen,
-    ProcessingClose,
-    ProcessingData,
-}
+const _BUFF_SIZE: usize = 1024;
 
-#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
-enum CharItem {
-    OpenAngle,
-    ClosingSlash,
-    ClosingAngle,
-    IgnorableSpace,
-    TextData,
-    NamespaceColon,
-    AttributeEquals,
-    AttributeOpenQuotes,
-    AttributeCloseQuotes,
-}
-
-const BUFF_SIZE: usize = 1024;
-
-pub fn parse<R: BufRead>(r: &mut R) -> error::Result<structure::Document> {
+pub fn _parse<R: BufRead>(r: &mut R) -> error::Result<structure::Document> {
     let mut s = String::new();
     let _ = r.read_to_string(&mut s).context(error::IoRead {
         parse_location: error::ParseLocation { line: 0, column: 0 },
@@ -98,43 +66,33 @@ impl Position {
     }
 }
 
-// Comparison traits: Eq, PartialEq, Ord, PartialOrd.
-// Clone, to create T from &T via a copy.
-// Copy, to give a type 'copy semantics' instead of 'move semantics'.
-// Hash, to compute a hash from &T.
-// Default, to create an empty instance of a data type.
-// Debug, to format a value using the {:?} formatter.
-
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash, Default)]
-pub struct ParserState {
-    pub position: Position,
-    pub doc_state: DocState,
-    pub current_char: char,
+struct ParserState {
+    position: Position,
+    doc_state: DocState,
+    current_char: char,
+    tag_status: TagStatus,
+    user_data_status: UserDataStatus,
 }
 
-#[derive(Debug, Clone)]
-pub struct  Parser<'a> {
-    pub parser_state: ParserState,
-    pub data: &'a str,
-    pub iter: Chars<'a>
-}
-
-pub fn parse_str(s: &str) -> error::Result<structure::Document> {
+pub fn parse_str(s: &str) -> Result<structure::Document> {
     let mut state = ParserState {
         position: Default::default(),
         doc_state: DocState::BeforeFirstTag,
         current_char: '\0',
+        tag_status: OutsideTag,
+        user_data_status: Outside,
     };
 
     let mut iter = s.chars();
-    while let Some(c) = iter.next() {
-        state.current_char = c;
-        process_current(&mut iter, &mut state)?;
+    while advance_parser(&mut iter, &mut state) {
+        process_char(&mut iter, &mut state)?;
+        trace!("{:?}", state);
     }
 
     Ok(structure::Document {
-        version: None,
-        encoding: None,
+        // version: None,
+        // encoding: None,
         root: structure::Element {
             parser_metadata: ParserMetadata {},
             namespace: None,
@@ -144,35 +102,66 @@ pub fn parse_str(s: &str) -> error::Result<structure::Document> {
     })
 }
 
-fn process_current(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
-    trace!("{:?}", state);
-    let c = state.current_char;
-    state.position.absolute += 1;
-    advance_state_position(c, state);
-    match state.doc_state {
-        DocState::RootElement => {},
-        BeforeFirstTag => {
-            if c.is_ascii_whitespace() {
-                // Keep advancing until we get to the first tag.
-                return Ok(())
-            } else if c == '<' {
-                state.doc_state = DocState::XmlDeclaration;
-            } else {
-                return Err(Error::Parse{ parser_state: state.clone(), backtrace: Backtrace::generate() })
+// <tag></tag>
+#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
+enum TagStatus {
+    TagOpen,
+    InsideTag,
+    TagClose,
+    OutsideTag,
+}
+
+impl Default for TagStatus {
+    fn default() -> Self {
+        return TagStatus::OutsideTag;
+    }
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
+enum UserDataStatus {
+    Inside,
+    Outside,
+}
+
+impl Default for UserDataStatus {
+    fn default() -> Self {
+        return UserDataStatus::Outside;
+    }
+}
+
+fn process_char(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
+    match state.tag_status {
+        TagStatus::TagOpen => state.tag_status = TagStatus::InsideTag,
+        TagStatus::InsideTag => {
+            if state.user_data_status == UserDataStatus::Outside && state.current_char == '>' {
+                state.tag_status = TagStatus::TagClose
             }
-        },
-        DocState::XmlDeclaration => {},
-        DocState::Doctype => {},
+        }
+        TagStatus::TagClose => {
+            if state.user_data_status == UserDataStatus::Outside && state.current_char == '<' {
+                state.tag_status = TagStatus::TagOpen;
+            } else {
+                state.tag_status = TagStatus::OutsideTag;
+            }
+        }
+        OutsideTag => {
+            if state.current_char == '<' {
+                state.tag_status = TagStatus::TagOpen
+            }
+        }
     }
     Ok(())
 }
 
-fn advance_state_position(current: char, state: &mut ParserState) {
-    if current == '\n' {
-        state.position.line += 1;
-        state.position.column = 0;
-    } else {
-        state.position.column += 1;
+fn advance_parser(iter: &mut Chars<'_>, state: &mut ParserState) -> bool {
+    let option_char = iter.next();
+    match option_char {
+        Some(c) => {
+            state.current_char = c;
+            state.position.increment(&state.current_char);
+            return true;
+        }
+        None => return false,
     }
 }
 

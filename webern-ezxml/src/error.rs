@@ -2,10 +2,9 @@
 
 #![allow(clippy::default_trait_access)]
 
-use std::path::PathBuf;
-
+use crate::parser::Position;
 use snafu::{Backtrace, Snafu};
-use crate::parser::ParserState;
+use std::panic::Location;
 
 /// Alias for `Result<T, Error>`.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -21,9 +20,9 @@ pub struct ParseLocation {
 #[snafu(visibility = "pub(crate)")]
 pub enum Error {
     /// A failure while parsing xml.
-    #[snafu(display("Failure while parsing: {:?}", parser_state.position))]
+    #[snafu(display("Failure while parsing: {:?}", position))]
     Parse {
-        parser_state: ParserState,
+        position: Position,
         backtrace: Backtrace,
     },
     IoRead {
@@ -31,6 +30,8 @@ pub enum Error {
         source: std::io::Error,
         backtrace: Backtrace,
     },
+    #[snafu(display("Oh no! A bug in the program: '{}'", message))]
+    Bug { message: String },
 }
 
 // used in `std::io::Read` implementations

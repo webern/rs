@@ -31,6 +31,7 @@ pub struct TestXmlFile {
 pub fn get_xml_files(listing: &Vec<PathBuf>) -> Vec<TestXmlFile> {
     let mut map: HashMap<String, TestXmlFile> = HashMap::new();
     for x in listing.iter() {}
+    Vec::new()
 }
 
 fn get_extension_from_filename(filename: &str) -> Option<&str> {

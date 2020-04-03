@@ -1,11 +1,15 @@
+/*!
+Half baked work on XML in Rust.
+*/
 #[macro_use]
 extern crate log;
 
-mod error;
-mod parser;
-mod structure;
-
+pub use parser::parse_str;
 pub use structure::Attribute;
 pub use structure::Element;
 pub use structure::ElementContent;
 pub use structure::Namespace;
+
+mod error;
+mod parser;
+mod structure;

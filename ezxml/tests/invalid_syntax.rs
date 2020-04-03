@@ -79,11 +79,20 @@ fn get_filename<P: AsRef<Path>>(p: P) -> String {
 }
 
 #[test]
+fn init_logger() {
+    let _ = env_logger::builder().is_test(true).try_init();
+}
+
+#[test]
 fn test() {
+    init_logger();
     let files = get_files();
     let stuff = get_xml_files(&files);
     assert!(stuff.len() > 0);
     for x in stuff.iter() {
-        println!("{:?}", x)
+        println!("{:?}", x);
+        let s = std::fs::read_to_string(&x.xml).unwrap();
+        let result = ezxml::parse_str(s.as_str());
+        //assert!(result.is_err());
     }
 }

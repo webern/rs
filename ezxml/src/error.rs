@@ -2,9 +2,9 @@
 
 #![allow(clippy::default_trait_access)]
 
-use crate::parser::Position;
 use snafu::{Backtrace, Snafu};
-use std::panic::Location;
+
+use crate::parser::Position;
 
 /// Alias for `Result<T, Error>`.
 pub type Result<T> = std::result::Result<T, Error>;

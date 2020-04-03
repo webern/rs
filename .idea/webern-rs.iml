@@ -2,7 +2,7 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/webern-ezxml/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ezxml/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/webern-ezxml/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/webern-ezxml/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/webern-ezxml/benches" isTestSource="true" />
@@ -10,8 +10,21 @@
       <sourceFolder url="file://$MODULE_DIR$/drop-dir/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/drop-dir/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/drop-dir/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/test-dir/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/repo-dir/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/repo-dir/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/repo-dir/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/test-dir/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test-dir/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/test-dir/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/ezxml/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ezxml/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/ezxml/benches" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/drop-dir/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ezxml/target" />
+      <excludeFolder url="file://$MODULE_DIR$/repo-dir/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
+      <excludeFolder url="file://$MODULE_DIR$/test-dir/target" />
       <excludeFolder url="file://$MODULE_DIR$/webern-ezxml/target" />
     </content>
     <orderEntry type="inheritedJdk" />

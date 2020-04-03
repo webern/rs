@@ -53,6 +53,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ezxml"
+version = "0.0.0"
+dependencies = [
+ "env_logger",
+ "log",
+ "snafu",
+ "test-dir",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -239,6 +249,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "test-dir"
+version = "0.1.0"
+
+[[package]]
 name = "thread_local"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -267,15 +281,6 @@ name = "wasi"
 version = "0.9.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cccddf32554fecc6acb585f82a32a72e28b48f8c4c1883ddfeeeaa96f7d8e519"
-
-[[package]]
-name = "webern-ezxml"
-version = "0.0.0"
-dependencies = [
- "env_logger",
- "log",
- "snafu",
-]
 
 [[package]]
 name = "winapi"

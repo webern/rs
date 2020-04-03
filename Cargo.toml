@@ -2,5 +2,6 @@
 
 members = [
     "drop-dir",
-    "webern-ezxml",
+    "ezxml",
+    'test-dir',
 ]

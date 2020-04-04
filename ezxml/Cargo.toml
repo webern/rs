@@ -15,3 +15,4 @@ cargo-readme = "3.2.0"
 
 [dev-dependencies]
 test-dir = {path = "../test-dir"}
+xml-files = {path = "../xml-files"}

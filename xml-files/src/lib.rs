@@ -3,6 +3,7 @@
 //! errors, and the the accompanying JSON manifest will make this apparent.
 
 use std::fs;
+use std::fs::File;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -32,6 +33,25 @@ pub fn list_test_files() -> Vec<TestXmlFile> {
         })
     }
     result
+}
+
+pub fn get_test_info(test_name: &str) -> TestXmlFile {
+    get_test_info_with_dir(test_name, &data_dir())
+}
+
+fn get_test_info_with_dir(test_name: &str, dir: &PathBuf) -> TestXmlFile {
+    let xml_file = dir.to_path_buf().join(format!("{}{}", test_name, ".xml"));
+    let metadata_file = dir.to_path_buf().join(format!("{}{}", test_name, ".metadata.json"));
+    TestXmlFile {
+        name: test_name.to_string(),
+        xml_file,
+        metadata_file,
+    }
+}
+
+pub fn open_xml_file(test_name: &str) -> File {
+    let p = data_dir().join(format!("{}.xml", test_name));
+    File::open(p).unwrap()
 }
 
 // #[serde(rename_all = "kebab-case")]

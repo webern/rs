@@ -46,13 +46,22 @@ pub fn get_xml_files(listing: &Vec<PathBuf>) -> Vec<TestXmlFile> {
             "json" => {
                 is_xml = false;
                 let sub = fname.replace(".json", "");
-                let metadata_str = PathBuf::from(&sub).extension().unwrap().to_str().unwrap().to_string();
+                let metadata_str = PathBuf::from(&sub)
+                    .extension()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string();
                 assert!(metadata_str == "metadata".to_string());
                 test_name = sub.replace(".metadata", "")
             }
-            _ => { panic!("could not parse the path '{}'", p.display()) }
+            _ => panic!("could not parse the path '{}'", p.display()),
         }
-        let mut txf = TestXmlFile { name: Default::default(), xml: Default::default(), metadata: Default::default() };
+        let mut txf = TestXmlFile {
+            name: Default::default(),
+            xml: Default::default(),
+            metadata: Default::default(),
+        };
         if let Some(found) = map.get_mut(&test_name) {
             txf = found.clone();
         }
@@ -71,11 +80,21 @@ pub fn get_xml_files(listing: &Vec<PathBuf>) -> Vec<TestXmlFile> {
 }
 
 fn get_ext<P: AsRef<Path>>(p: P) -> String {
-    Path::new(p.as_ref()).extension().unwrap().to_str().unwrap().to_string()
+    Path::new(p.as_ref())
+        .extension()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string()
 }
 
 fn get_filename<P: AsRef<Path>>(p: P) -> String {
-    Path::new(p.as_ref()).file_name().unwrap().to_str().unwrap().to_string()
+    Path::new(p.as_ref())
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string()
 }
 
 #[test]

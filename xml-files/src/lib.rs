@@ -19,6 +19,12 @@ pub struct TestXmlFile {
     pub metadata_file: PathBuf,
 }
 
+impl TestXmlFile {
+    pub fn open_xml_file(&self) -> File {
+        File::open(&self.xml_file).unwrap()
+    }
+}
+
 pub fn list_test_files() -> Vec<TestXmlFile> {
     let mut result = Vec::new();
     let xml_files = list_xml_files();
@@ -49,10 +55,10 @@ fn get_test_info_with_dir(test_name: &str, dir: &PathBuf) -> TestXmlFile {
     }
 }
 
-pub fn open_xml_file(test_name: &str) -> File {
-    let p = data_dir().join(format!("{}.xml", test_name));
-    File::open(p).unwrap()
-}
+// pub fn open_xml_file(test_name: &str) -> File {
+//     let p = data_dir().join(format!("{}.xml", test_name));
+//     File::open(p).unwrap()
+// }
 
 // #[serde(rename_all = "kebab-case")]
 

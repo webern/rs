@@ -58,7 +58,7 @@ fn generate_tests() {
             "    let info = xml_files::get_test_info(\"{}\");\n",
             xml_file.name
         );
-        write!(f, "    let f = xml_files::open_xml_file(&info.xml_file);\n");
+        write!(f, "    let f = info.open_xml_file();\n");
         f.write(b"}\n\n\n");
         f.write(b"");
     }

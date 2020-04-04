@@ -3,11 +3,11 @@
 #[test]
 fn unescaped_angle_test() {
     let info = xml_files::get_test_info("unescaped-angle");
-    let f = xml_files::open_xml_file(&info.xml_file);
+    let f = info.open_xml_file();
 }
 
 #[test]
 fn pi_stray_text_test() {
     let info = xml_files::get_test_info("pi-stray-text");
-    let f = xml_files::open_xml_file(&info.xml_file);
+    let f = info.open_xml_file();
 }

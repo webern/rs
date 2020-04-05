@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 const XML_FILES: &str = "xml-files";
-const XML_SYNTAX_ERRORS: &str = "syntax-errors";
+const XML_DATA: &str = "data";
 
 /// Returns the path to this crate.
 fn self_dir() -> PathBuf {
@@ -15,19 +15,19 @@ pub fn workspace_dir() -> PathBuf {
     p.canonicalize().unwrap()
 }
 
-pub fn xml_dir() -> PathBuf {
-    workspace_dir().join(XML_FILES).canonicalize().unwrap()
+pub fn xml_data_dir() -> PathBuf {
+    workspace_dir().join(XML_DATA).canonicalize().unwrap()
 }
 
-pub fn xml_syntax_errors() -> PathBuf {
-    xml_dir().join(XML_SYNTAX_ERRORS).canonicalize().unwrap()
-}
+// pub fn xml_syntax_errors() -> PathBuf {
+//     xml_data_dir().join(XML_SYNTAX_ERRORS).canonicalize().unwrap()
+// }
 
 #[cfg(test)]
 mod tests {
     use std::path::Path;
 
-    use crate::{self_dir, workspace_dir, xml_dir, xml_syntax_errors};
+    use crate::{self_dir, workspace_dir, xml_data_dir, xml_syntax_errors};
 
     #[test]
     fn test_self_dir() {
@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     fn test_xml_dir() {
-        let dir = xml_dir();
+        let dir = xml_data_dir();
         assert!(Path::new(&dir).is_dir());
         let components = dir.components();
         let last_component = components.last().unwrap().as_os_str().to_string_lossy();

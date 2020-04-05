@@ -10,5 +10,10 @@ fn main() {
         },
     };
 
-    println!("{}", serde_json::to_string_pretty(&t).unwrap());
+    let x = TestMetadata {
+        description: "x".to_string(),
+        syntax: Syntax::Good {},
+    };
+
+    println!("{}", serde_json::to_string_pretty(&x).unwrap());
 }

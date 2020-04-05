@@ -1,17 +1,17 @@
 extern crate env_logger;
 
 use std::io::prelude::*;
+use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
-use crate::error::Error::Bug;
 use crate::error::{self, Result};
+use crate::error::Error::Bug;
 use crate::parser::DocState::BeforeFirstTag;
 use crate::parser::TagStatus::{InsideTag, OutsideTag, TagOpen};
-use crate::parser::UserDataStatus::Outside;
+// use crate::parser::UserDataStatus::Outside;
 use crate::structure;
 use crate::structure::{ElementContent, ParserMetadata};
-use std::str::Chars;
 
 // mod error;
 
@@ -47,11 +47,22 @@ pub fn _parse<R: BufRead>(r: &mut R) -> error::Result<structure::Document> {
     parse_str(&s)
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash, Default)]
+#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 pub struct Position {
     pub line: u64,
     pub column: u64,
     pub absolute: u64,
+}
+
+impl Default for Position {
+    fn default() -> Self {
+        // These are the magic values needed to make the Position values 1-based.
+        Position {
+            line: 1,
+            column: 1,
+            absolute: 0, // this gets advanced when we start parsing (?)
+        }
+    }
 }
 
 impl Position {
@@ -72,7 +83,6 @@ struct ParserState {
     doc_state: DocState,
     current_char: char,
     tag_status: TagStatus,
-    user_data_status: UserDataStatus,
 }
 
 pub fn parse_str(s: &str) -> Result<structure::Document> {
@@ -81,7 +91,6 @@ pub fn parse_str(s: &str) -> Result<structure::Document> {
         doc_state: DocState::BeforeFirstTag,
         current_char: '\0',
         tag_status: OutsideTag,
-        user_data_status: Outside,
     };
 
     let mut iter = s.chars();
@@ -105,9 +114,9 @@ pub fn parse_str(s: &str) -> Result<structure::Document> {
 // <tag></tag>
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 enum TagStatus {
-    TagOpen,
-    InsideTag,
-    TagClose,
+    TagOpen(u64),
+    InsideTag(u64),
+    TagClose(u64, u64),
     OutsideTag,
 }
 
@@ -131,22 +140,37 @@ impl Default for UserDataStatus {
 
 fn process_char(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
     match state.tag_status {
-        TagStatus::TagOpen => state.tag_status = TagStatus::InsideTag,
-        TagStatus::InsideTag => {
-            if state.user_data_status == UserDataStatus::Outside && state.current_char == '>' {
-                state.tag_status = TagStatus::TagClose
+        TagStatus::TagOpen(pos) => state.tag_status = TagStatus::InsideTag(pos),
+        TagStatus::InsideTag(pos) => {
+            if state.current_char == '>' {
+                state.tag_status = TagStatus::TagClose(pos, state.position.absolute)
+            } else if state.current_char == '<' {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
             }
         }
-        TagStatus::TagClose => {
-            if state.user_data_status == UserDataStatus::Outside && state.current_char == '<' {
-                state.tag_status = TagStatus::TagOpen;
+        TagStatus::TagClose(start, end) => {
+            if state.current_char == '<' {
+                state.tag_status = TagStatus::TagOpen(state.position.absolute);
+            } else if state.current_char == '>' {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
             } else {
                 state.tag_status = TagStatus::OutsideTag;
             }
         }
         OutsideTag => {
             if state.current_char == '<' {
-                state.tag_status = TagStatus::TagOpen
+                state.tag_status = TagStatus::TagOpen(state.position.absolute);
+            } else if state.current_char == '>' {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
             }
         }
     }
@@ -171,6 +195,7 @@ fn advance_parser(iter: &mut Chars<'_>, state: &mut ParserState) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
 
     const XML1: &str = r##"
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -188,8 +213,6 @@ mod tests {
   </cat>
 </cats>
     "##;
-
-    use super::*;
 
     fn init_logger() {
         let _ = env_logger::builder().is_test(true).try_init();

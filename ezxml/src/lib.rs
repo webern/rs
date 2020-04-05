@@ -10,6 +10,6 @@ pub use structure::Element;
 pub use structure::ElementContent;
 pub use structure::Namespace;
 
-mod error;
+pub mod error;
 mod parser;
 mod structure;

@@ -3,7 +3,7 @@
 //! errors, and the the accompanying JSON manifest will make this apparent.
 
 use std::fs;
-use std::fs::File;
+use std::fs::{File, read_to_string};
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
@@ -22,8 +22,8 @@ pub struct TestXmlFile {
 }
 
 impl TestXmlFile {
-    pub fn open_xml_file(&self) -> File {
-        File::open(&self.xml_file).unwrap()
+    pub fn read_xml_file(&self) -> String {
+        read_to_string(&self.xml_file).unwrap()
     }
 }
 

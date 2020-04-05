@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use xml_files;
+use xml_files::Syntax;
 
 fn main() {
     generate_readme();
@@ -51,14 +52,58 @@ fn generate_tests() {
 
     for xml_file in xml_files.iter() {
         f.write(b"#[test]\n");
-        let test_fn = format!("fn {}_test() {{\n", xml_file.name.replace("-", "_"));
+        let test_fn = match xml_file.metadata.syntax {
+            Syntax::Bad {
+                character_position,
+                line,
+                column,
+            } => format!(
+                "fn bad_syntax_{}_test() {{\n",
+                xml_file.name.replace("-", "_")
+            ),
+            Syntax::Good {} => format!(
+                "fn good_syntax_{}_test() {{\n",
+                xml_file.name.replace("-", "_")
+            ),
+        };
         write!(f, "{}", test_fn);
         write!(
             f,
             "    let info = xml_files::get_test_info(\"{}\");\n",
             xml_file.name
         );
-        write!(f, "    let f = info.open_xml_file();\n");
+        write!(f, "    let xml_str = info.read_xml_file();\n");
+        match xml_file.metadata.syntax {
+            Syntax::Bad {
+                character_position,
+                line,
+                column,
+            } => {
+                write!(
+                    f,
+                    "let parse_result = ezxml::parse_str(xml_str.as_str());\n"
+                );
+                write!(f, "assert!(parse_result.is_err());\n");
+                write!(f, "let err = parse_result.err().unwrap();\n");
+                write!(f, "match err {{\n");
+                write!(
+                    f,
+                    "ezxml::error::Error::Parse {{ position, backtrace }} => {{\n"
+                );
+
+                write!(
+                    f,
+                    "assert_eq!(position.absolute, {});\n",
+                    character_position
+                );
+                write!(f, "assert_eq!(position.line, {});\n", line);
+                write!(f, "assert_eq!(position.column, {});\n", column);
+                write!(f, "}}\n");
+                write!(f, "_ => panic!(\"Error was expected to be of type ezxml::error::Error::Parse, but was not.\")\n");
+                write!(f, "}}\n");
+            }
+            Syntax::Good {} => println!("todo - assert goodness"),
+        }
         f.write(b"}\n\n\n");
         f.write(b"");
     }

@@ -13,15 +13,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Update Rust Toolchain
-        run: rustup update stable
-      - name: Check Code Formatting
-        run: cargo fmt -- --check
-      - name: Run Linter
-        run: cargo clippy --locked -- -D warnings
-      - name: Run Linter on Tests
-        run: cargo clippy --tests --locked -- -D warnings
-      - name: Build drop-dir
-        run: cargo build --locked -p drop-dir
-      - name: Test drop-dir
+      - run: rustup update stable
+      - run: cargo clippy -- --version
+      - run: cargo fmt -- --check
+      - run: cargo clippy --locked -- -D warnings
+      - run: cargo clippy --tests --locked -- -D warnings
+      - run: cargo build --locked -p drop-dir
+      - name: drop-dir
         run: cd drop-dir && cargo test --all-features --locked
+      - name: ezxml
+        run: |
+          cd ezxml && cargo build && \
+          cargo test && \
+          cargo test --all-features && \
+          cargo clippy --tests --locked -- -D warnings && \
+          cargo clippy --locked -- -D warnings

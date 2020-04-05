@@ -8,10 +8,7 @@ fn bad_syntax_unescaped_angle_test() {
     assert!(parse_result.is_err());
     let err = parse_result.err().unwrap();
     match err {
-        ezxml::error::Error::Parse {
-            position,
-            backtrace,
-        } => {
+        ezxml::error::Error::Parse { position, .. } => {
             assert_eq!(position.absolute, 110);
             assert_eq!(position.line, 5);
             assert_eq!(position.column, 5);
@@ -28,10 +25,7 @@ fn bad_syntax_angle_in_attribute_value_test() {
     assert!(parse_result.is_err());
     let err = parse_result.err().unwrap();
     match err {
-        ezxml::error::Error::Parse {
-            position,
-            backtrace,
-        } => {
+        ezxml::error::Error::Parse { position, .. } => {
             assert_eq!(position.absolute, 51);
             assert_eq!(position.line, 2);
             assert_eq!(position.column, 12);
@@ -43,7 +37,8 @@ fn bad_syntax_angle_in_attribute_value_test() {
 #[test]
 fn good_syntax_ezfile_test() {
     let info = xml_files::get_test_info("ezfile");
-    let xml_str = info.read_xml_file();
+    let _xml_str = info.read_xml_file();
+    // TODO - assert goodness
 }
 
 #[test]
@@ -54,10 +49,7 @@ fn bad_syntax_pi_stray_text_test() {
     assert!(parse_result.is_err());
     let err = parse_result.err().unwrap();
     match err {
-        ezxml::error::Error::Parse {
-            position,
-            backtrace,
-        } => {
+        ezxml::error::Error::Parse { position, .. } => {
             assert_eq!(position.absolute, 85);
             assert_eq!(position.line, 3);
             assert_eq!(position.column, 39);

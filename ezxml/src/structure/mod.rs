@@ -8,9 +8,9 @@ pub enum ElementContent {
     Parent(Vec<Element>),
 }
 
-pub struct Namespace {
-    namespace: String,
-}
+// pub struct Namespace {
+//     namespace: String,
+// }
 
 pub struct Attribute {
     pub parser_metadata: ParserMetadata,
@@ -52,24 +52,23 @@ pub struct Document {
     // pub encoding: Option<Encoding>,
     pub root: Element,
 }
-
-pub fn max_element_depth(element: &Element) -> u64 {
-    match &element.content {
-        ElementContent::Parent(children) => {
-            let mut max_found: u64 = 0;
-            children.iter().for_each(|item| {
-                let curr = max_element_depth(item);
-                if curr > max_found {
-                    info!("curr > max_found: {}, {}", curr, max_found);
-                    max_found = curr;
-                }
-            });
-            return max_found + 1;
-        }
-        _ => {}
-    }
-    1
-}
+// pub fn max_element_depth(element: &Element) -> u64 {
+//     match &element.content {
+//         ElementContent::Parent(children) => {
+//             let mut max_found: u64 = 0;
+//             children.iter().for_each(|item| {
+//                 let curr = max_element_depth(item);
+//                 if curr > max_found {
+//                     info!("curr > max_found: {}, {}", curr, max_found);
+//                     max_found = curr;
+//                 }
+//             });
+//             return max_found + 1;
+//         }
+//         _ => {}
+//     }
+//     1
+// }
 
 #[cfg(test)]
 mod tests {
@@ -83,7 +82,7 @@ mod tests {
     #[test]
     fn structs_test() {
         init_logger();
-        let doc = Document {
+        let _doc = Document {
             // version: None,
             // encoding: None,
             root: Element {
@@ -113,7 +112,7 @@ mod tests {
             },
         };
 
-        let max_depth = max_element_depth(&doc.root);
-        assert_eq!(max_depth, 2);
+        // let max_depth = max_element_depth(&doc.root);
+        // assert_eq!(max_depth, 2);
     }
 }

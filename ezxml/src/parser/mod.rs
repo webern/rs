@@ -5,9 +5,9 @@ use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
-use crate::error::Error::Bug;
+// use crate::error::Error::Bug;
 use crate::error::{self, Result};
-use crate::parser::TagStatus::{InsideTag, OutsideTag, TagOpen};
+use crate::parser::TagStatus::OutsideTag;
 // use crate::parser::UserDataStatus::Outside;
 use crate::structure;
 use crate::structure::{ElementContent, ParserMetadata};
@@ -65,9 +65,9 @@ impl Default for Position {
 }
 
 impl Position {
-    fn increment(&mut self, current_char: &char) {
+    fn increment(&mut self, current_char: char) {
         self.absolute += 1;
-        if current_char == &'\n' {
+        if current_char == '\n' {
             self.line += 1;
             self.column = 0;
         } else {
@@ -122,21 +122,21 @@ enum TagStatus {
 
 impl Default for TagStatus {
     fn default() -> Self {
-        return TagStatus::OutsideTag;
+        TagStatus::OutsideTag
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
-enum UserDataStatus {
-    Inside,
-    Outside,
-}
+// #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
+// enum UserDataStatus {
+//     Inside,
+//     Outside,
+// }
 
-impl Default for UserDataStatus {
-    fn default() -> Self {
-        return UserDataStatus::Outside;
-    }
-}
+// impl Default for UserDataStatus {
+//     fn default() -> Self {
+//         return UserDataStatus::Outside;
+//     }
+// }
 
 fn is_space_or_alpha(c: char) -> bool {
     // if (c == ' ') {
@@ -146,10 +146,10 @@ fn is_space_or_alpha(c: char) -> bool {
 }
 
 fn is_pi_indicator(c: char) -> bool {
-    return c == '?' || c == '!';
+    c == '?' || c == '!'
 }
 
-fn process_char(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
+fn process_char(_iter: &mut Chars, state: &mut ParserState) -> Result<()> {
     let _state_str = format!("{:?}", state);
     match state.tag_status {
         TagStatus::TagOpen(pos) => {
@@ -174,7 +174,7 @@ fn process_char(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
                 });
             }
         }
-        TagStatus::TagClose(start, end) => {
+        TagStatus::TagClose(_start, _end) => {
             if state.current_char == '<' {
                 state.tag_status = TagStatus::TagOpen(state.position.absolute);
             } else if state.current_char == '>' {
@@ -206,10 +206,10 @@ fn advance_parser(iter: &mut Chars<'_>, state: &mut ParserState) -> bool {
     match option_char {
         Some(c) => {
             state.current_char = c;
-            state.position.increment(&state.current_char);
-            return true;
+            state.position.increment(state.current_char);
+            true
         }
-        None => return false,
+        None => false,
     }
 }
 

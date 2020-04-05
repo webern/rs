@@ -3,14 +3,17 @@
 //! errors, and the the accompanying JSON manifest will make this apparent.
 
 use std::fs;
-use std::fs::{File, read_to_string};
+use std::fs::{read_to_string, File};
 use std::io::BufReader;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
-pub fn data_dir() -> PathBuf { my_crate_dir().join("data").canonicalize().unwrap() }
+// use serde_json::Value;
+
+pub fn data_dir() -> PathBuf {
+    my_crate_dir().join("data").canonicalize().unwrap()
+}
 
 /// `TestXmlFile` Represents a test file including paths to the test file and its metadata file.
 #[derive(Debug, Clone)]
@@ -31,9 +34,15 @@ pub fn list_test_files() -> Vec<TestXmlFile> {
     let mut result = Vec::new();
     let xml_files = list_xml_files();
     for xml_file in xml_files.iter() {
-        let name = xml_file.file_name().unwrap().to_string_lossy().replace(".xml", "");
+        let name = xml_file
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .replace(".xml", "");
         let dir = xml_file.parent().unwrap();
-        let metadata_file = dir.to_path_buf().join(format!("{}{}", name, ".metadata.json"));
+        let metadata_file = dir
+            .to_path_buf()
+            .join(format!("{}{}", name, ".metadata.json"));
         result.push(TestXmlFile {
             name,
             xml_file: xml_file.into(),
@@ -50,7 +59,9 @@ pub fn get_test_info(test_name: &str) -> TestXmlFile {
 
 fn get_test_info_with_dir(test_name: &str, dir: &PathBuf) -> TestXmlFile {
     let xml_file = dir.to_path_buf().join(format!("{}{}", test_name, ".xml"));
-    let metadata_file = dir.to_path_buf().join(format!("{}{}", test_name, ".metadata.json"));
+    let metadata_file = dir
+        .to_path_buf()
+        .join(format!("{}{}", test_name, ".metadata.json"));
     TestXmlFile {
         name: test_name.to_string(),
         xml_file,
@@ -65,7 +76,6 @@ fn get_test_info_with_dir(test_name: &str, dir: &PathBuf) -> TestXmlFile {
 // }
 
 // #[serde(rename_all = "kebab-case")]
-
 
 #[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -93,9 +103,15 @@ pub struct TestMetadata {
 
 // PRIVATE
 
-fn my_crate_dir() -> PathBuf { PathBuf::from(env!("CARGO_MANIFEST_DIR")).canonicalize().unwrap() }
+fn my_crate_dir() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .canonicalize()
+        .unwrap()
+}
 
-fn ext(p: &PathBuf) -> String { p.extension().unwrap().to_string_lossy().to_string() }
+fn ext(p: &PathBuf) -> String {
+    p.extension().unwrap().to_string_lossy().to_string()
+}
 
 fn list_all_files() -> Vec<PathBuf> {
     let mut result = Vec::new();
@@ -123,18 +139,16 @@ fn list_all_files() -> Vec<PathBuf> {
 fn list_xml_files() -> Vec<PathBuf> {
     list_all_files()
         .into_iter()
-        .filter(|p| {
-            ext(&p).as_str() == "xml"
-        }).collect()
+        .filter(|p| ext(&p).as_str() == "xml")
+        .collect()
 }
 
-fn list_json_files() -> Vec<PathBuf> {
-    list_all_files()
-        .into_iter()
-        .filter(|p| {
-            ext(&p).as_str() == "json"
-        }).collect()
-}
+// fn list_json_files() -> Vec<PathBuf> {
+//     list_all_files()
+//         .into_iter()
+//         .filter(|p| ext(&p).as_str() == "json")
+//         .collect()
+// }
 
 fn load_metadata(p: &PathBuf) -> TestMetadata {
     // Open the file in read-only mode with buffer.

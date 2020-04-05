@@ -14,6 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: rustup update stable
+      - run: cargo clippy -- --version
       - run: cargo fmt -- --check
       - run: cargo clippy --locked -- -D warnings
       - run: cargo clippy --tests --locked -- -D warnings

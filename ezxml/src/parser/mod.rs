@@ -5,9 +5,8 @@ use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
-use crate::error::{self, Result};
 use crate::error::Error::Bug;
-use crate::parser::DocState::BeforeFirstTag;
+use crate::error::{self, Result};
 use crate::parser::TagStatus::{InsideTag, OutsideTag, TagOpen};
 // use crate::parser::UserDataStatus::Outside;
 use crate::structure;
@@ -15,19 +14,19 @@ use crate::structure::{ElementContent, ParserMetadata};
 
 // mod error;
 
-#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
-pub enum DocState {
-    BeforeFirstTag,
-    XmlDeclaration,
-    Doctype,
-    RootElement,
-}
+// #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
+// pub enum DocState {
+//     BeforeFirstTag,
+//     XmlDeclaration,
+//     Doctype,
+//     RootElement,
+// }
 
-impl Default for DocState {
-    fn default() -> Self {
-        DocState::BeforeFirstTag
-    }
-}
+// impl Default for DocState {
+//     fn default() -> Self {
+//         DocState::BeforeFirstTag
+//     }
+// }
 
 // Comparison traits: Eq, PartialEq, Ord, PartialOrd.
 // Clone, to create T from &T via a copy.
@@ -80,7 +79,7 @@ impl Position {
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash, Default)]
 struct ParserState {
     position: Position,
-    doc_state: DocState,
+    // doc_state: DocState,
     current_char: char,
     tag_status: TagStatus,
 }
@@ -88,13 +87,14 @@ struct ParserState {
 pub fn parse_str(s: &str) -> Result<structure::Document> {
     let mut state = ParserState {
         position: Default::default(),
-        doc_state: DocState::BeforeFirstTag,
+        // doc_state: DocState::BeforeFirstTag,
         current_char: '\0',
         tag_status: OutsideTag,
     };
 
     let mut iter = s.chars();
     while advance_parser(&mut iter, &mut state) {
+        let _state = format!("{:?}", state);
         process_char(&mut iter, &mut state)?;
         trace!("{:?}", state);
     }
@@ -138,9 +138,32 @@ impl Default for UserDataStatus {
     }
 }
 
+fn is_space_or_alpha(c: char) -> bool {
+    // if (c == ' ') {
+    //     return true;
+    // }
+    c.is_alphabetic() || c.is_ascii_whitespace()
+}
+
+fn is_pi_indicator(c: char) -> bool {
+    return c == '?' || c == '!';
+}
+
 fn process_char(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
+    let _state_str = format!("{:?}", state);
     match state.tag_status {
-        TagStatus::TagOpen(pos) => state.tag_status = TagStatus::InsideTag(pos),
+        TagStatus::TagOpen(pos) => {
+            if state.current_char != '/'
+                && !is_space_or_alpha(state.current_char)
+                && !is_pi_indicator(state.current_char)
+            {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
+            }
+            state.tag_status = TagStatus::InsideTag(pos)
+        }
         TagStatus::InsideTag(pos) => {
             if state.current_char == '>' {
                 state.tag_status = TagStatus::TagClose(pos, state.position.absolute)
@@ -162,6 +185,7 @@ fn process_char(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
             } else {
                 state.tag_status = TagStatus::OutsideTag;
             }
+            // TODO pop the start and stop locations over to a tag parer?
         }
         OutsideTag => {
             if state.current_char == '<' {

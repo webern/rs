@@ -13,8 +13,8 @@ fn bad_syntax_unescaped_angle_test() {
             backtrace,
         } => {
             assert_eq!(position.absolute, 110);
-            assert_eq!(position.line, 4);
-            assert_eq!(position.column, 38);
+            assert_eq!(position.line, 5);
+            assert_eq!(position.column, 5);
         }
         _ => panic!("Error was expected to be of type ezxml::error::Error::Parse, but was not."),
     }

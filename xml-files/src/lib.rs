@@ -4,6 +4,7 @@
 
 use std::fs;
 use std::fs::File;
+use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -17,6 +18,7 @@ pub struct TestXmlFile {
     pub name: String,
     pub xml_file: PathBuf,
     pub metadata_file: PathBuf,
+    pub metadata: TestMetadata,
 }
 
 impl TestXmlFile {
@@ -35,7 +37,8 @@ pub fn list_test_files() -> Vec<TestXmlFile> {
         result.push(TestXmlFile {
             name,
             xml_file: xml_file.into(),
-            metadata_file,
+            metadata_file: metadata_file.clone(),
+            metadata: load_metadata(&metadata_file),
         })
     }
     result
@@ -51,7 +54,8 @@ fn get_test_info_with_dir(test_name: &str, dir: &PathBuf) -> TestXmlFile {
     TestXmlFile {
         name: test_name.to_string(),
         xml_file,
-        metadata_file,
+        metadata_file: metadata_file.clone(),
+        metadata: load_metadata(&metadata_file),
     }
 }
 
@@ -64,7 +68,8 @@ fn get_test_info_with_dir(test_name: &str, dir: &PathBuf) -> TestXmlFile {
 
 
 #[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq)]
-#[serde(tag = "syntax")]
+#[serde(rename_all = "snake_case")]
+// #[serde(tag = "syntax", content = "syntax_error_location")]
 pub enum Syntax {
     Good {},
     Bad {
@@ -74,7 +79,13 @@ pub enum Syntax {
     },
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq)]
+impl Default for Syntax {
+    fn default() -> Self {
+        Syntax::Good {}
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq, Default)]
 pub struct TestMetadata {
     pub description: String,
     pub syntax: Syntax,
@@ -123,4 +134,11 @@ fn list_json_files() -> Vec<PathBuf> {
         .filter(|p| {
             ext(&p).as_str() == "json"
         }).collect()
+}
+
+fn load_metadata(p: &PathBuf) -> TestMetadata {
+    // Open the file in read-only mode with buffer.
+    let file = File::open(p).unwrap();
+    let reader = BufReader::new(file);
+    serde_json::from_reader(reader).unwrap()
 }

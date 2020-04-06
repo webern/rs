@@ -1,16 +1,20 @@
 extern crate env_logger;
 
+#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
 pub struct ParserMetadata {}
 
+#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
 pub enum ElementContent {
     Empty,
     Text(String),
     Parent(Vec<Element>),
 }
 
-// pub struct Namespace {
-//     namespace: String,
-// }
+impl Default for ElementContent {
+    fn default() -> Self {
+        ElementContent::Empty
+    }
+}
 
 pub struct Attribute {
     pub parser_metadata: ParserMetadata,
@@ -19,56 +23,24 @@ pub struct Attribute {
     pub value: String,
 }
 
+#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
 pub struct Element {
-    pub parser_metadata: ParserMetadata,
-    pub namespace: Option<String>,
-    pub name: String,
-    pub content: ElementContent,
+    parser_metadata: ParserMetadata,
+    namespace: Option<String>,
+    name: String,
+    content: ElementContent,
 }
 
-// pub enum Location {
-//     BeforeElement,
-//     AfterElement,
-// }
-
-// pub struct ProcessingInstruction {
-//     pub parser_metadata: ParserMetadata,
-//     pub location: Location,
-//     pub target: String,
-//     pub data: String,
-// }
-
-// pub enum XmlVersion {
-//     Version10,
-//     Version11,
-// }
-
-// pub enum Encoding {
-//     UTF8,
-// }
-
+#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
 pub struct Document {
-    // pub version: Option<XmlVersion>,
-    // pub encoding: Option<Encoding>,
     pub root: Element,
 }
-// pub fn max_element_depth(element: &Element) -> u64 {
-//     match &element.content {
-//         ElementContent::Parent(children) => {
-//             let mut max_found: u64 = 0;
-//             children.iter().for_each(|item| {
-//                 let curr = max_element_depth(item);
-//                 if curr > max_found {
-//                     info!("curr > max_found: {}, {}", curr, max_found);
-//                     max_found = curr;
-//                 }
-//             });
-//             return max_found + 1;
-//         }
-//         _ => {}
-//     }
-//     1
-// }
+
+impl Document {
+    pub fn new() -> Document {
+        Document::default()
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -111,8 +83,5 @@ mod tests {
                 ]),
             },
         };
-
-        // let max_depth = max_element_depth(&doc.root);
-        // assert_eq!(max_depth, 2);
     }
 }

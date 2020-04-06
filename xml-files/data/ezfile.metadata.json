@@ -1,5 +1,5 @@
 {
-  "description": "processing instruction close with no open",
+  "description": "a simple, small, well-formed xml file",
   "syntax": {
     "good": {}
   }

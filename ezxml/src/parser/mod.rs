@@ -99,16 +99,7 @@ pub fn parse_str(s: &str) -> Result<structure::Document> {
         trace!("{:?}", state);
     }
 
-    Ok(structure::Document {
-        // version: None,
-        // encoding: None,
-        root: structure::Element {
-            parser_metadata: ParserMetadata {},
-            namespace: None,
-            name: "x".to_string(),
-            content: ElementContent::Empty,
-        },
-    })
+    Ok(structure::Document::new())
 }
 
 // <tag></tag>

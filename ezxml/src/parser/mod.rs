@@ -8,7 +8,6 @@ use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 use crate::error::{self, Result};
 use crate::parser::TagStatus::OutsideTag;
 use crate::structure;
-use crate::structure::{ElementContent, ParserMetadata};
 
 // Comparison traits: Eq, PartialEq, Ord, PartialOrd.
 // Clone, to create T from &T via a copy.

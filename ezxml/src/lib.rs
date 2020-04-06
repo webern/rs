@@ -5,8 +5,8 @@ Half baked work on XML in Rust.
 extern crate log;
 
 pub use parser::parse_str;
-pub use structure::Element;
-pub use structure::ElementContent;
+pub use structure::ElementData;
+pub use structure::Node;
 
 pub mod error;
 mod parser;

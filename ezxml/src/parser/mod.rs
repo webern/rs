@@ -5,28 +5,10 @@ use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
-// use crate::error::Error::Bug;
 use crate::error::{self, Result};
 use crate::parser::TagStatus::OutsideTag;
-// use crate::parser::UserDataStatus::Outside;
 use crate::structure;
 use crate::structure::{ElementContent, ParserMetadata};
-
-// mod error;
-
-// #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
-// pub enum DocState {
-//     BeforeFirstTag,
-//     XmlDeclaration,
-//     Doctype,
-//     RootElement,
-// }
-
-// impl Default for DocState {
-//     fn default() -> Self {
-//         DocState::BeforeFirstTag
-//     }
-// }
 
 // Comparison traits: Eq, PartialEq, Ord, PartialOrd.
 // Clone, to create T from &T via a copy.
@@ -102,7 +84,6 @@ pub fn parse_str(s: &str) -> Result<structure::Document> {
     Ok(structure::Document::new())
 }
 
-// <tag></tag>
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 enum TagStatus {
     TagOpen(u64),
@@ -117,22 +98,7 @@ impl Default for TagStatus {
     }
 }
 
-// #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
-// enum UserDataStatus {
-//     Inside,
-//     Outside,
-// }
-
-// impl Default for UserDataStatus {
-//     fn default() -> Self {
-//         return UserDataStatus::Outside;
-//     }
-// }
-
 fn is_space_or_alpha(c: char) -> bool {
-    // if (c == ' ') {
-    //     return true;
-    // }
     c.is_alphabetic() || c.is_ascii_whitespace()
 }
 
@@ -176,7 +142,7 @@ fn process_char(_iter: &mut Chars, state: &mut ParserState) -> Result<()> {
             } else {
                 state.tag_status = TagStatus::OutsideTag;
             }
-            // TODO pop the start and stop locations over to a tag parer?
+            // TODO pop the start and stop locations over to a tag parser?
         }
         OutsideTag => {
             if state.current_char == '<' {

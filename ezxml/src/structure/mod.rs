@@ -16,13 +16,6 @@ impl Default for ElementContent {
     }
 }
 
-pub struct Attribute {
-    pub parser_metadata: ParserMetadata,
-    pub namespace: Option<String>,
-    pub name: String,
-    pub value: String,
-}
-
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
 pub struct Element {
     parser_metadata: ParserMetadata,

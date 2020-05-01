@@ -237,7 +237,6 @@ impl Hash for OrdMap {
 pub struct ElementData {
     pub namespace: Option<String>,
     pub name: String,
-    // TODO - introduce Attribute type
     pub attributes: OrdMap,
     pub nodes: VecDeque<Node>,
 }
@@ -259,8 +258,8 @@ pub enum Node {
     // <?target data1 data2 data3?>'
     ProcessingInstruction(PIData),
 
-    // <!DOCTYPE doc> Contents are as a blob
-    DocType(String), // yuck
+    // <!DOCTYPE doc> Contents are a blob
+    DocType(String),
 }
 
 impl Default for Node {
@@ -268,19 +267,6 @@ impl Default for Node {
         Node::Element(ElementData::default())
     }
 }
-
-// impl Clone for Node {
-//     fn clone(&self) -> Self {
-//         match self {
-//             Node::Element(element_data) => Node::Element(element_data.clone()),
-//             Node::String(s) => Node::String(s.clone()),
-//             Node::CData(s) => Node::CData(s.clone()),
-//             Node::Comment(s) => Node::Comment(s.clone()),
-//             Node::ProcessingInstruction(pi_data) => Node::ProcessingInstruction(pi_data.clone()),
-//             Node::DocType(s) => Node::DocType(s.clone()),
-//         }
-//     }
-// }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
 pub struct Document {
@@ -290,6 +276,10 @@ pub struct Document {
 impl Document {
     pub fn new() -> Document {
         Document::default()
+    }
+
+    pub fn root(&self) -> &Node {
+        return &self.root;
     }
 }
 

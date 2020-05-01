@@ -17,6 +17,13 @@ fn bad_syntax_unescaped_angle_test() {
 }
 
 #[test]
+fn good_syntax_difficult_nodes_test() {
+    let info = xml_files::get_test_info("difficult-nodes");
+    let _xml_str = info.read_xml_file();
+    // TODO - assert goodness
+}
+
+#[test]
 fn bad_syntax_angle_in_attribute_value_test() {
     let info = xml_files::get_test_info("angle-in-attribute-value");
     let xml_str = info.read_xml_file();

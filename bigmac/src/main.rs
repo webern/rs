@@ -39,52 +39,52 @@ fn main() {
     //     source: Some(boxed),
     // };
 
-    let x = wrap!(result.err().unwrap());
+    let original_error = result.err().unwrap();
+    let raised_err = raise!("foo is a {}", "bishop");
+
+    let x = wrap!(raised_err, "my message {} {}", "and poo", "and foo");
     // println!("{}", e);
     println!("{}", x);
     // yo!("poo");
     // yall!("poo", "foo", "loo");
 }
 
-// #[macro_export]
-// macro_rules! yo {
-//   ($name:expr) => {
-//      println!("Yo {}!", $name)
-//   };
-// }
-//
-//
 #[macro_export]
 macro_rules! wrap {
     // Base case:
     ($err:expr) => (MyError {
-        message: "poo poo".to_string(),
+        message: "an error occurred".to_string(),
         file: file!().to_string(),
         line: line!() as u64,
         source: Some($err.into()),
     });
-        // let boxed: Box<dyn std::error::Error> = $err.into();
-        // return MyError {
-        //     message: format!("some message here"),
-        //     file: file!().to_string(),
-        //     line: line!() as u64,
-        //     source: Some(boxed),
-        // }
-    // );
-    // // `$x` followed by at least one `$y,`
-    // ($x:expr, $($y:expr),+) => (
-    //     // Call `find_min!` on the tail `$y`
-    //     std::cmp::min($x, find_min!($($y),+))
-    // )
+    ($err:expr, $msg:expr) => (MyError {
+        message: $msg.to_string(),
+        file: file!().to_string(),
+        line: line!() as u64,
+        source: Some($err.into()),
+    });
+    ($err:expr, $fmt:expr, $($arg:expr),+) => (MyError {
+        message: format!($fmt, $($arg),+),
+        file: file!().to_string(),
+        line: line!() as u64,
+        source: Some($err.into()),
+    });
 }
 
-// fn create_error<E>(source: E, message: &str, file: &str, line: u64) -> MyError
-//     where E: std::error::Error, {
-//     let boxed: Box<dyn std::error::Error> = source.into();
-//     MyError {
-//         message: message.to_string(),
-//         file: file.to_string(),
-//         line,
-//         source: Some(boxed),
-//     }
-// }
+#[macro_export]
+macro_rules! raise {
+    // Base case:
+    ($msg:expr) => (MyError {
+        message: msg.to_string(),
+        file: file!().to_string(),
+        line: line!() as u64,
+        source: None,
+    });
+    ($fmt:expr, $($arg:expr),+) => (MyError {
+        message: format!($fmt, $($arg),+),
+        file: file!().to_string(),
+        line: line!() as u64,
+        source: None,
+    });
+}

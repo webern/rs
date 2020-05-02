@@ -70,13 +70,6 @@ fn get_test_info_with_dir(test_name: &str, dir: &PathBuf) -> TestXmlFile {
     }
 }
 
-// pub fn open_xml_file(test_name: &str) -> File {
-//     let p = data_dir().join(format!("{}.xml", test_name));
-//     File::open(p).unwrap()
-// }
-
-// #[serde(rename_all = "kebab-case")]
-
 #[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 // #[serde(tag = "syntax", content = "syntax_error_location")]

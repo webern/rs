@@ -1,0 +1,11 @@
+[package]
+name = "xml-struct"
+version = "0.0.0"
+authors = ["Matthew James Briggs <matthew.james.briggs@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+serde = "1.0.106"
+
+[build-dependencies]
+cargo-readme = "3.2.0"

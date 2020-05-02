@@ -41,7 +41,7 @@ fn generate_readme() {
 
 fn generate_tests() {
     // Check for environment variable "SKIP_TEST_GENERATION". If it is set, skip test generation.
-    if env::var_os("SKIP_TEST_GENERATION").is_some() {
+    if env::var_os("EZXML_GENERATE_TESTS").is_none() {
         return;
     }
     let xtest = xtest::list_test_files();

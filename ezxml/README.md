@@ -6,8 +6,8 @@ Half baked work on XML in Rust.
 
 ## TODO 
 
- * [ ] xml-struct: create the ezfile in a test using structs
- * [ ] xml-struct: write assertions for the ezfile structs
+ * [x] xml-struct: create the ezfile in a test using structs
+ * [x] xml-struct: write assertions for the ezfile structs
  * [ ] xml-struct: serialize the ezfile to xml
  * [ ] xml-struct: assert serialized xml equals a string contstant of the xml
  * [ ] xml-struct: serialize the ezfile to json

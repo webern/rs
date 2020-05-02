@@ -7,6 +7,16 @@ use std::hash::{Hash, Hasher};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct OrdMap(HashMap<String, String>);
 
+impl OrdMap {
+    pub fn new() -> Self {
+        OrdMap(HashMap::new())
+    }
+
+    pub fn from(inner: HashMap<String, String>) -> Self {
+        OrdMap(inner)
+    }
+}
+
 impl Clone for OrdMap {
     fn clone(&self) -> Self {
         let mut result = HashMap::new();

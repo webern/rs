@@ -4,7 +4,7 @@ Current version: 0.0.0
 
 Half baked work on XML in Rust.
 
-## TODO 
+## TODO
 
  * [x] xml-struct: create the ezfile in a test using structs
  * [x] xml-struct: write assertions for the ezfile structs

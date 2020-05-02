@@ -11,7 +11,7 @@ serde = { version = "1.0.92", features = ["derive"] }
 serde_json = "1.0.48"
 serde_plain = "0.3.0"
 snafu = "0.6.2"
-xml-struct = {path = "../xml-struct", features = ["serde"] }
+xdoc = {path = "../xdoc", features = ["serde"] }
 
 [dev-dependencies]
 test-dir = {path = "../test-dir"}

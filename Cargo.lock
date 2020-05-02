@@ -106,8 +106,8 @@ dependencies = [
  "log",
  "snafu",
  "test-dir",
+ "xdoc",
  "xml-files",
- "xml-struct",
 ]
 
 [[package]]
@@ -456,6 +456,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
+name = "xdoc"
+version = "0.0.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "xml-files"
 version = "0.0.0"
 dependencies = [
@@ -466,12 +473,5 @@ dependencies = [
  "serde_plain",
  "snafu",
  "test-dir",
- "xml-struct",
-]
-
-[[package]]
-name = "xml-struct"
-version = "0.0.0"
-dependencies = [
- "serde",
+ "xdoc",
 ]

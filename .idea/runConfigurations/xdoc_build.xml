@@ -1,12 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="build structs" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+  <configuration default="false" name="xdoc build" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
     <option name="channel" value="DEFAULT" />
-    <option name="command" value="build --package xml-struct --lib --features serde" />
+    <option name="command" value="build --package xdoc --lib --features serde" />
     <option name="allFeatures" value="false" />
     <option name="nocapture" value="false" />
     <option name="emulateTerminal" value="false" />
     <option name="backtrace" value="SHORT" />
-    <option name="workingDirectory" value="file://$PROJECT_DIR$/xml-struct" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$/xdoc" />
     <envs />
     <method v="2">
       <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />

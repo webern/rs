@@ -5,5 +5,5 @@ members = [
     "ezxml",
     "test-dir",
     "xml-files",
-    "xml-struct"
+    "xdoc"
 ]

@@ -24,7 +24,7 @@
       <sourceFolder url="file://$MODULE_DIR$/xml-files/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/xml-files/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/xml-files/benches" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/xml-struct/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/xdoc/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/drop-dir/target" />
       <excludeFolder url="file://$MODULE_DIR$/ezxml/target" />
       <excludeFolder url="file://$MODULE_DIR$/repo-dir/target" />

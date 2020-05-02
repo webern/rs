@@ -5,7 +5,7 @@ use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
-use xml_struct::Document;
+use xdoc::Document;
 
 use crate::error::{self, Result};
 use crate::parser::TagStatus::OutsideTag;

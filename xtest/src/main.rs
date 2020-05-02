@@ -1,5 +1,5 @@
-use xml_files::{Assertion, Expected, Syntax, TestMetadata};
-use xml_struct::Name;
+use xtest::{Assertion, Expected, Syntax, TestMetadata};
+use xdoc::Name;
 
 fn main() {
     let t = TestMetadata {

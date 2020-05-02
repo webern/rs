@@ -1,4 +1,4 @@
-//! `xml-files` provides a set of XML files for testing. Each file comes with a manifest (in JSON
+//! `xtest` provides a set of XML files for testing. Each file comes with a manifest (in JSON
 //! format) which describes the XML file. For example, some XML files include intentional syntax
 //! errors, and the the accompanying JSON manifest will make this apparent.
 
@@ -32,8 +32,8 @@ impl TestXmlFile {
 
 pub fn list_test_files() -> Vec<TestXmlFile> {
     let mut result = Vec::new();
-    let xml_files = list_xml_files();
-    for xml_file in xml_files.iter() {
+    let xtest = list_xtest();
+    for xml_file in xtest.iter() {
         let name = xml_file
             .file_name()
             .unwrap()
@@ -149,7 +149,7 @@ fn list_all_files() -> Vec<PathBuf> {
     result
 }
 
-fn list_xml_files() -> Vec<PathBuf> {
+fn list_xtest() -> Vec<PathBuf> {
     list_all_files()
         .into_iter()
         .filter(|p| ext(&p).as_str() == "xml")

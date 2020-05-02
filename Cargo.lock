@@ -107,7 +107,7 @@ dependencies = [
  "snafu",
  "test-dir",
  "xdoc",
- "xml-files",
+ "xtest",
 ]
 
 [[package]]
@@ -463,7 +463,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "xml-files"
+name = "xtest"
 version = "0.0.0"
 dependencies = [
  "env_logger",

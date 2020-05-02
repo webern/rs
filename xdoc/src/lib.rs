@@ -13,6 +13,7 @@ mod doc;
 mod node;
 mod nodes;
 mod ord_map;
+mod error;
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

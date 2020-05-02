@@ -20,12 +20,11 @@ impl Document {
         return &self.root;
     }
 
-    pub fn to_writer<W>(&self, _writer: W) -> Result<()>
+    pub fn to_writer<W>(&self, writer: &mut W) -> Result<()>
         where
-            W: AsMut<dyn Write>, {
-        if let Node::Element(_e) = self.root() {
-            // return e.to_writer(writer);
-            return raise!("not implemented");
+            W: Write, {
+        if let Node::Element(e) = self.root() {
+            return e.to_writer(writer);
         } else {
             return raise!("the root is not a node of element type.");
         }

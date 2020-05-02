@@ -51,11 +51,11 @@ const SMALLEST_ELEMENT: usize = 4; // <x/>
 
 impl ElementData {
     pub fn to_writer<W>(&self, writer: &mut W) -> Result<()>
-        where W: AsMut<dyn Write>, {
-        let write_result = writer.as_mut().write(b"poo");
+        where W: Write, {
+        let write_result = writer.write(b"poo!");
         if write_result.is_err() {
-            let x = write_result.err().take().unwrap();
-            return wrap!(x);
+            let e = write_result.err().take().unwrap();
+            return wrap!(e);
         }
         let size = write_result.unwrap();
         if size < SMALLEST_ELEMENT {
@@ -67,10 +67,18 @@ impl ElementData {
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
     use super::*;
 
     #[test]
     fn structs_test() {
-        let mut _doc = Document::new();
+        let mut doc = Document::new();
+        let mut c = Cursor::new(Vec::new());
+        let result = doc.to_writer(&mut c);
+        assert!(result.is_ok());
+        let data = c.into_inner();
+        let data_str = std::str::from_utf8(data.as_slice()).unwrap();
+        assert_eq!("poo!", data_str);
     }
 }

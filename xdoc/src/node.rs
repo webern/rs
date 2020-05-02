@@ -25,3 +25,5 @@ impl Default for Node {
         Node::Element(crate::ElementData::default())
     }
 }
+
+impl Node {}

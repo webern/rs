@@ -1,7 +1,10 @@
 use std::default::Default;
 use std::io::Write;
 
+use crate::error::Result;
 use crate::Node;
+
+// const SMALLEST_POSSIBLE_XML_FILE: u64 = 4; // <x/>
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
 pub struct Document {
@@ -17,9 +20,16 @@ impl Document {
         return &self.root;
     }
 
-    pub fn to_writer<W, T: ?Sized>(&self, writer: W) -> Result<()>
+    pub fn to_writer<W>(&self, _writer: W) -> Result<()>
         where
-            W: Write, {}
+            W: AsMut<dyn Write>, {
+        if let Node::Element(_e) = self.root() {
+            // return e.to_writer(writer);
+            return raise!("not implemented");
+        } else {
+            return raise!("the root is not a node of element type.");
+        }
+    }
 }
 
 #[macro_export]

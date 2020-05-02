@@ -1,0 +1,8 @@
+[package]
+name = "bigmac"
+version = "0.1.0"
+#authors = ["Matt Briggs"]
+#readme = "./README.md"
+#repository = "https://github.com/webern/webern-rs"
+#license = "MIT OR Apache-2.0"
+#description = "A simple crate for self-dropping (RAII) directories."

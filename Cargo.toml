@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+    "bigmac",
     "drop-dir",
     "ezxml",
     "test-dir",

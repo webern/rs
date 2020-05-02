@@ -466,12 +466,12 @@ dependencies = [
  "serde_plain",
  "snafu",
  "test-dir",
+ "xml-struct",
 ]
 
 [[package]]
 name = "xml-struct"
 version = "0.0.0"
 dependencies = [
- "cargo-readme",
  "serde",
 ]

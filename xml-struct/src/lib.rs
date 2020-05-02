@@ -1,3 +1,7 @@
+#[cfg(feature = "serde")]
+#[macro_use]
+extern crate serde;
+
 use std::collections::VecDeque;
 use std::hash::Hash;
 
@@ -12,6 +16,7 @@ mod nodes;
 mod ord_map;
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Name {
     pub namespace: Option<String>,
     pub name: String,
@@ -38,16 +43,8 @@ pub struct ElementData {
 mod tests {
     use super::*;
 
-    // fn init_logger() {
-    //     let _ = env_logger::builder().is_test(true).try_init();
-    // }
-
-    // Check if a url with a trailing slash and one without trailing slash can both be parsed
     #[test]
     fn structs_test() {
-        // init_logger();
         let mut _doc = Document::new();
-        // let mut root = doc.root();
-        // let mut root_content = root.mut_content();
     }
 }

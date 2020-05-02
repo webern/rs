@@ -1,4 +1,5 @@
 use xml_files::{Assertion, Expected, Syntax, TestMetadata};
+use xml_struct::Name;
 
 fn main() {
     let t = TestMetadata {
@@ -25,4 +26,11 @@ fn main() {
     };
 
     println!("{}", serde_json::to_string_pretty(&x).unwrap());
+
+    let name = Name {
+        namespace: Some("hoop".to_string()),
+        name: "bloop".to_string(),
+    };
+
+    println!("{}", serde_json::to_string_pretty(&name).unwrap());
 }

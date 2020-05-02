@@ -99,7 +99,7 @@ impl Default for Syntax {
 pub struct TestMetadata {
     pub description: String,
     pub syntax: Syntax,
-    pub assertions: Vec<Assertion>,
+    pub assertions: Option<Vec<Assertion>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq)]

@@ -23,15 +23,18 @@ pub struct Name {
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PIData {}
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 struct Attribute {
     key: String,
     value: String,
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ElementData {
     pub namespace: Option<String>,
     pub name: String,

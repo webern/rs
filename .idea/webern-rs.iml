@@ -20,10 +20,10 @@
       <sourceFolder url="file://$MODULE_DIR$/ezxml/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/ezxml/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/ezxml/benches" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/xml-files/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/xml-files/examples" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/xml-files/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/xml-files/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/xtest/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/xtest/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/xtest/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/xtest/benches" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/xdoc/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/drop-dir/target" />
       <excludeFolder url="file://$MODULE_DIR$/ezxml/target" />
@@ -31,7 +31,7 @@
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/test-dir/target" />
       <excludeFolder url="file://$MODULE_DIR$/webern-ezxml/target" />
-      <excludeFolder url="file://$MODULE_DIR$/xml-files/target" />
+      <excludeFolder url="file://$MODULE_DIR$/xtest/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

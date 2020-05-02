@@ -6,8 +6,8 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::process::Command;
 
-use xml_files;
-use xml_files::Syntax;
+use xtest;
+use xtest::Syntax;
 
 fn main() {
     generate_readme();
@@ -44,7 +44,7 @@ fn generate_tests() {
     if env::var_os("SKIP_TEST_GENERATION").is_some() {
         return;
     }
-    let xml_files = xml_files::list_test_files();
+    let xtest = xtest::list_test_files();
     let test_file_path = integ_test_dir().join("parse_tests.rs");
     let _ = std::fs::remove_file(&test_file_path);
     let mut f = std::fs::File::create(&test_file_path).unwrap();
@@ -52,7 +52,7 @@ fn generate_tests() {
         .unwrap();
     writeln!(f, "use ezxml::Node;\n");
 
-    for xml_file in xml_files.iter() {
+    for xml_file in xtest.iter() {
         f.write_all(b"#[test]").unwrap();
         let test_fn = match xml_file.metadata.syntax {
             Syntax::Bad { .. } => format!(
@@ -67,7 +67,7 @@ fn generate_tests() {
         writeln!(f, "{}", test_fn).unwrap();
         writeln!(
             f,
-            "    let info = xml_files::get_test_info(\"{}\");",
+            "    let info = xtest::get_test_info(\"{}\");",
             xml_file.name
         )
         .unwrap();

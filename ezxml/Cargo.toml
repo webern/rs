@@ -12,8 +12,8 @@ xdoc = { version = "0.0.0", path = "../xdoc" }
 
 [build-dependencies]
 cargo-readme = "3.2.0"
-xml-files = {path = "../xml-files"}
+xtest = {path = "../xtest"}
 
 [dev-dependencies]
 test-dir = {path = "../test-dir"}
-xml-files = {path = "../xml-files"}
+xtest = {path = "../xtest"}

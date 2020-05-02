@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-// const XML_FILES: &str = "xml-files";
+// const XML_FILES: &str = "xtest";
 const XML_DATA: &str = "data";
 
 /// Returns the path to this crate.

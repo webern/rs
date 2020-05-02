@@ -8,6 +8,7 @@ edition = "2018"
 snafu = "0.6.2"
 env_logger = "0.7.1"
 log = "0.4.8"
+xml-struct = { version = "0.0.0", path = "../xml-struct" }
 
 [build-dependencies]
 xml-files = {path = "../xml-files"}

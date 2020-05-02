@@ -5,9 +5,10 @@ use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
+use xml_struct::Document;
+
 use crate::error::{self, Result};
 use crate::parser::TagStatus::OutsideTag;
-use crate::structure;
 
 // Comparison traits: Eq, PartialEq, Ord, PartialOrd.
 // Clone, to create T from &T via a copy.
@@ -19,7 +20,7 @@ use crate::structure;
 
 const _BUFF_SIZE: usize = 1024;
 
-pub fn _parse<R: BufRead>(r: &mut R) -> error::Result<structure::Document> {
+pub fn _parse<R: BufRead>(r: &mut R) -> error::Result<Document> {
     let mut s = String::new();
     let _ = r.read_to_string(&mut s).context(error::IoRead {
         parse_location: error::ParseLocation { line: 0, column: 0 },
@@ -65,7 +66,7 @@ struct ParserState {
     tag_status: TagStatus,
 }
 
-pub fn parse_str(s: &str) -> Result<structure::Document> {
+pub fn parse_str(s: &str) -> Result<Document> {
     let mut state = ParserState {
         position: Default::default(),
         // doc_state: DocState::BeforeFirstTag,
@@ -80,7 +81,7 @@ pub fn parse_str(s: &str) -> Result<structure::Document> {
         trace!("{:?}", state);
     }
 
-    Ok(structure::Document::new())
+    Ok(Document::new())
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]

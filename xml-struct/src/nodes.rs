@@ -4,6 +4,7 @@ use std::collections::VecDeque;
 use crate::node::Node;
 
 #[derive(Debug, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Nodes(VecDeque<Node>);
 
 impl Clone for Nodes {

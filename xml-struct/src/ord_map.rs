@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
 // TODO - extract key and value types
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct OrdMap(HashMap<String, String>);
 
 impl Clone for OrdMap {

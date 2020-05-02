@@ -1,16 +1,13 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="run xml invalid_syntax tests" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+  <configuration default="false" name="ezxml build" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
     <option name="channel" value="DEFAULT" />
-    <option name="command" value="test --package ezxml --test invalid_syntax test -- --nocapture --exact" />
-    <option name="allFeatures" value="false" />
+    <option name="command" value="build --package ezxml" />
+    <option name="allFeatures" value="true" />
     <option name="nocapture" value="false" />
     <option name="emulateTerminal" value="false" />
     <option name="backtrace" value="SHORT" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-    <envs>
-      <env name="RUST_LOG" value="trace" />
-      <env name="RUSTFLAGS" value="-Awarnings" />
-    </envs>
+    <envs />
     <method v="2">
       <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
     </method>

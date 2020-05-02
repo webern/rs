@@ -107,6 +107,7 @@ dependencies = [
  "snafu",
  "test-dir",
  "xml-files",
+ "xml-struct",
 ]
 
 [[package]]
@@ -465,4 +466,12 @@ dependencies = [
  "serde_plain",
  "snafu",
  "test-dir",
+]
+
+[[package]]
+name = "xml-struct"
+version = "0.0.0"
+dependencies = [
+ "cargo-readme",
+ "serde",
 ]

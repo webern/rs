@@ -99,6 +99,26 @@ impl Default for Syntax {
 pub struct TestMetadata {
     pub description: String,
     pub syntax: Syntax,
+    pub assertions: Vec<Assertion>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum Expected {
+    NotFound,
+    Attribute { value: String },
+}
+
+impl Default for Expected {
+    fn default() -> Self {
+        Expected::NotFound
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq, Default)]
+pub struct Assertion {
+    pub path: String,
+    pub expected: Expected,
 }
 
 // PRIVATE

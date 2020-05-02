@@ -4,5 +4,6 @@ members = [
     "drop-dir",
     "ezxml",
     "test-dir",
-    "xml-files"
+    "xml-files",
+    "xml-struct"
 ]

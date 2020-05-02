@@ -1,4 +1,4 @@
-use xml_files::{Syntax, TestMetadata};
+use xml_files::{Assertion, Expected, Syntax, TestMetadata};
 
 fn main() {
     let t = TestMetadata {
@@ -8,6 +8,7 @@ fn main() {
             line: 2,
             column: 10,
         },
+        assertions: vec![],
     };
 
     println!("{}", serde_json::to_string_pretty(&t).unwrap());
@@ -15,6 +16,12 @@ fn main() {
     let x = TestMetadata {
         description: "x".to_string(),
         syntax: Syntax::Good {},
+        assertions: vec![Assertion {
+            path: "/cats/cat/name".to_string(),
+            expected: Expected::Attribute {
+                value: "bones".to_string(),
+            },
+        }],
     };
 
     println!("{}", serde_json::to_string_pretty(&x).unwrap());

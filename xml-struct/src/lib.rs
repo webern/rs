@@ -2,7 +2,6 @@
 #[macro_use]
 extern crate serde;
 
-use std::collections::VecDeque;
 use std::hash::Hash;
 
 pub use doc::Document;
@@ -39,7 +38,7 @@ pub struct ElementData {
     pub namespace: Option<String>,
     pub name: String,
     pub attributes: OrdMap,
-    pub nodes: VecDeque<Node>,
+    pub nodes: Vec<Node>,
 }
 
 #[cfg(test)]

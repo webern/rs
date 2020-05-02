@@ -53,8 +53,9 @@ impl ElementData {
     pub fn to_writer<W>(&self, writer: &mut W) -> Result<()>
         where W: AsMut<dyn Write>, {
         let write_result = writer.as_mut().write(b"poo");
-        if let Some(err) = write_result.err() {
-            return wrap!(err);
+        if write_result.is_err() {
+            let x = write_result.err().take().unwrap();
+            return wrap!(x);
         }
         let size = write_result.unwrap();
         if size < SMALLEST_ELEMENT {

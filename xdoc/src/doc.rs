@@ -1,4 +1,5 @@
 use std::default::Default;
+use std::io::Write;
 
 use crate::Node;
 
@@ -15,6 +16,10 @@ impl Document {
     pub fn root(&self) -> &Node {
         return &self.root;
     }
+
+    pub fn to_writer<W, T: ?Sized>(&self, writer: W) -> Result<()>
+        where
+            W: Write, {}
 }
 
 #[macro_export]

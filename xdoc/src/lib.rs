@@ -10,6 +10,7 @@ pub use node::Node;
 pub use nodes::Nodes;
 pub use ord_map::OrdMap;
 
+use crate::doc::WriteOpts;
 use crate::error::Result;
 
 #[macro_use]
@@ -65,9 +66,12 @@ impl ElementData {
         Ok(())
     }
 
-    pub fn to_writer<W>(&self, writer: &mut W) -> Result<()>
+    pub fn write<W>(&self, writer: &mut W, opts: &WriteOpts, depth: usize) -> Result<()>
         where W: Write, {
         if let Err(e) = self.check() {
+            return wrap!(e);
+        }
+        if let Err(e) = opts.indent(writer, depth) {
             return wrap!(e);
         }
         if let Err(e) = write!(writer, "<") {
@@ -83,21 +87,46 @@ impl ElementData {
         if let Err(e) = write!(writer, "{}", self.name) {
             return wrap!(e);
         }
-        // TODO - attributes
-        if self.nodes.is_empty() {
-            if let Err(e) = write!(writer, "/>") {
+
+        let attribute_keys = self.attributes.map().keys().map(|k| k.as_str()).collect::<Vec<&str>>();
+        for k in attribute_keys.iter() {
+            if let Err(e) = write!(writer, " {}=\"", &k) {
                 return wrap!(e);
-            } else {
-                return Ok(());
             }
-        } else {
-            if let Err(e) = write!(writer, ">") {
+            if let Some(val) = self.attributes.map().get(&k.to_string()) {
+                // TODO - escape string
+                if let Err(e) = write!(writer, "{}", val) {
+                    return wrap!(e);
+                }
+            }
+            if let Err(e) = write!(writer, "\"") {
                 return wrap!(e);
             }
         }
 
+        if self.nodes.is_empty() {
+            if let Err(e) = write!(writer, "/>") {
+                return wrap!(e);
+            } else {
+                if let Err(e) = opts.newline(writer) {
+                    return wrap!(e);
+                }
+                return Ok(());
+            }
+        } else {
+            if let Err(e) = opts.indent(writer, depth) {
+                return wrap!(e);
+            }
+            if let Err(e) = write!(writer, ">") {
+                return wrap!(e);
+            }
+        }
+        if let Err(e) = opts.newline(writer) {
+            return wrap!(e);
+        }
+
         for node in self.nodes.iter() {
-            if let Err(e) = node.write(writer) {
+            if let Err(e) = node.write(writer, opts, depth + 1) {
                 // TODO - this may explode with recursive wrapping
                 return wrap!(e);
             }
@@ -120,6 +149,9 @@ impl ElementData {
         if let Err(e) = write!(writer, ">") {
             return wrap!(e);
         }
+        if let Err(e) = opts.newline(writer) {
+            return wrap!(e);
+        }
         Ok(())
     }
 }
@@ -140,7 +172,7 @@ mod tests {
             nodes: vec![],
         });
         let mut c = Cursor::new(Vec::new());
-        let result = doc.to_writer(&mut c);
+        let result = doc.write(&mut c);
         assert!(result.is_ok());
         let data = c.into_inner();
         let data_str = std::str::from_utf8(data.as_slice()).unwrap();

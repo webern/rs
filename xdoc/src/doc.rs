@@ -4,11 +4,87 @@ use std::io::Write;
 use crate::error::Result;
 use crate::Node;
 
-// const SMALLEST_POSSIBLE_XML_FILE: u64 = 4; // <x/>
-
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
 pub struct Document {
     pub root: Node,
+}
+
+#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
+pub enum Indent {
+    None,
+    Spaces(usize),
+    Tab,
+}
+
+impl Default for Indent {
+    fn default() -> Self {
+        Indent::Spaces(2)
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
+pub enum Newline {
+    None,
+    Newline,
+    Windows,
+}
+
+impl Default for Newline {
+    fn default() -> Self {
+        Newline::Newline
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
+pub struct WriteOpts {
+    pub indent: Indent,
+    pub newline: Newline,
+}
+
+impl WriteOpts {
+    fn newline_str(&self) -> &'static str {
+        match self.newline {
+            Newline::None => "",
+            Newline::Newline => "\n",
+            Newline::Windows => "\n\r",
+        }
+    }
+
+    fn write_repeatedly<W>(writer: &mut W, num: usize, s: &str) -> Result<()>
+        where
+            W: Write, {
+        let s = std::iter::repeat(s).take(num).collect::<String>();
+        if let Err(e) = write!(writer, "{}", s) { return wrap!(e); }
+        Ok(())
+    }
+
+    pub(crate) fn indent<W>(&self, writer: &mut W, depth: usize) -> Result<()>
+        where
+            W: Write, {
+        match self.indent {
+            Indent::None => { return Ok(()); }
+            Indent::Spaces(n) => {
+                if let Err(e) = Self::write_repeatedly(writer, depth * n, " ") {
+                    return wrap!(e);
+                }
+            }
+            Indent::Tab => {
+                if let Err(e) = Self::write_repeatedly(writer, depth, "\t") {
+                    return wrap!(e);
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn newline<W>(&self, writer: &mut W) -> Result<()>
+        where
+            W: Write, {
+        if let Err(e) = write!(writer, "{}", self.newline_str()) {
+            return wrap!(e);
+        }
+        Ok(())
+    }
 }
 
 impl Document {
@@ -20,11 +96,17 @@ impl Document {
         return &self.root;
     }
 
-    pub fn to_writer<W>(&self, writer: &mut W) -> Result<()>
+    pub fn write<W>(&self, writer: &mut W) -> Result<()>
+        where
+            W: Write, {
+        return self.write_opts(writer, &WriteOpts::default());
+    }
+
+    pub fn write_opts<W>(&self, writer: &mut W, opts: &WriteOpts) -> Result<()>
         where
             W: Write, {
         if let Node::Element(e) = self.root() {
-            return e.to_writer(writer);
+            return e.write(writer, opts, 0);
         } else {
             return raise!("the root is not a node of element type.");
         }
@@ -46,6 +128,8 @@ macro_rules! map (
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
     use crate::*;
 
     fn assert_ezfile(doc: &Document) {
@@ -116,5 +200,18 @@ mod tests {
     fn test_ezfile_create() {
         let ezfile = create_ezfile();
         assert_ezfile(&ezfile);
+    }
+
+    #[test]
+    fn test_ezfile_to_string() {
+        let doc = create_ezfile();
+        let mut c = Cursor::new(Vec::new());
+        let result = doc.write(&mut c);
+        assert!(result.is_ok());
+        let data = c.into_inner();
+        let data_str = std::str::from_utf8(data.as_slice()).unwrap();
+        let we = std::fs::write("/Users/mjb/Desktop/early.xml", data_str);
+        assert!(we.is_ok());
+        assert_eq!(data_str, "");
     }
 }

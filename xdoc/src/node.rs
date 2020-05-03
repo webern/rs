@@ -1,5 +1,6 @@
 use std::io::Write;
 
+use crate::doc::WriteOpts;
 use crate::error::Result;
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
@@ -31,8 +32,16 @@ impl Default for Node {
 }
 
 impl Node {
-    pub fn write<W>(&self, writer: &mut W) -> Result<()>
+    pub fn write<W>(&self, writer: &mut W, opts: &WriteOpts, depth: usize) -> Result<()>
         where W: Write, {
+        match self {
+            Node::Element(data) => return data.write(writer, opts, depth),
+            Node::String(_) => { return Ok(()); }
+            Node::CData(_) => { return Ok(()); }
+            Node::Comment(_) => { return Ok(()); }
+            Node::ProcessingInstruction(_) => { return Ok(()); }
+            Node::DocType(_) => { return Ok(()); }
+        }
         Ok(())
     }
 }

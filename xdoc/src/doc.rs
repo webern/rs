@@ -1,11 +1,48 @@
 use std::default::Default;
+use std::io::SeekFrom::End;
 use std::io::Write;
 
 use crate::error::Result;
 use crate::Node;
 
+#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum XmlVersion {
+    None,
+    One,
+    OneDotOne,
+}
+
+impl Default for XmlVersion {
+    fn default() -> Self {
+        return XmlVersion::None;
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum Encoding {
+    None,
+    UTF8,
+}
+
+impl Default for Encoding {
+    fn default() -> Self {
+        return Encoding::None;
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct XmlDeclaration {
+    xml_version: XmlVersion,
+    encoding: Encoding,
+}
+
+#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Document {
+    pub xml_declaration: XmlDeclaration,
     pub root: Node,
 }
 
@@ -92,6 +129,10 @@ impl Document {
         Document::default()
     }
 
+    pub fn from_root(root: Node) -> Self {
+        Document { xml_declaration: Default::default(), root }
+    }
+
     pub fn root(&self) -> &Node {
         return &self.root;
     }
@@ -99,12 +140,52 @@ impl Document {
     pub fn write<W>(&self, writer: &mut W) -> Result<()>
         where
             W: Write, {
-        return self.write_opts(writer, &WriteOpts::default());
+        self.write_opts(writer, &WriteOpts::default())
     }
 
     pub fn write_opts<W>(&self, writer: &mut W, opts: &WriteOpts) -> Result<()>
         where
             W: Write, {
+        if self.xml_declaration.encoding != Encoding::None || self.xml_declaration.xml_version != XmlVersion::None {
+            if let Err(e) = write!(writer, "<?xml ") {
+                return wrap!(e);
+            }
+            let mut need_space = true;
+            match self.xml_declaration.xml_version {
+                XmlVersion::None => { need_space = false }
+                XmlVersion::One => {
+                    if let Err(e) = write!(writer, "version=\"1.0\"") {
+                        return wrap!(e);
+                    }
+                }
+                XmlVersion::OneDotOne => {
+                    if let Err(e) = write!(writer, "version=\"1.1\"") {
+                        return wrap!(e);
+                    }
+                }
+            }
+
+            match self.xml_declaration.encoding {
+                Encoding::None => {}
+                Encoding::UTF8 => {
+                    if need_space {
+                        if let Err(e) = write!(writer, " ") {
+                            return wrap!(e);
+                        }
+                    }
+                    if let Err(e) = write!(writer, "encoding=\"UTF-8\"") {
+                        return wrap!(e);
+                    }
+                }
+            }
+            if let Err(e) = write!(writer, "?>") {
+                return wrap!(e);
+            }
+            if let Err(e) = opts.newline(writer) {
+                return wrap!(e);
+            }
+        }
+
         if let Node::Element(e) = self.root() {
             return e.write(writer, opts, 0);
         } else {
@@ -131,6 +212,7 @@ mod tests {
     use std::io::Cursor;
 
     use crate::*;
+    use crate::doc::{Encoding, XmlDeclaration, XmlVersion};
 
     fn assert_ezfile(doc: &Document) {
         let root = doc.root();
@@ -191,7 +273,10 @@ mod tests {
             nodes: vec![bones_element, bishop_element],
         };
 
+        // Document::from_root(Node::Element(cats_data))
+
         Document {
+            xml_declaration: XmlDeclaration { xml_version: XmlVersion::One, encoding: Encoding::UTF8 },
             root: Node::Element(cats_data),
         }
     }

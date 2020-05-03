@@ -55,11 +55,11 @@ impl Eq for OrdMap {}
 
 impl OrdMap {
     pub fn map(&self) -> &HashMap<String, String> {
-        return &self.0;
+        &self.0
     }
 
     pub fn mut_map(&mut self) -> &mut HashMap<String, String> {
-        return &mut self.0;
+        &mut self.0
     }
 
     fn size_le(&self, other: &Self) -> bool {
@@ -78,17 +78,19 @@ impl PartialOrd for OrdMap {
         } else if self.size_gt(other) {
             return Some(Ordering::Greater);
         }
-        for (k, v) in self.0.iter() {
-            if let Some(other_v) = other.0.get(k.as_str()) {
-                if v < other_v {
-                    return Some(Ordering::Less);
-                } else if v > other_v {
+        for (k, my_val) in self.0.iter() {
+            let get_opt = other.0.get(k.as_str());
+            match get_opt {
+                None => {
                     return Some(Ordering::Greater);
                 }
-            } else {
-                // we will define the hash map that first has a value that the other one doesn't as
-                // being 'larger'.
-                return Some(Ordering::Greater);
+                Some(other_val) if my_val < other_val => {
+                    return Some(Ordering::Less);
+                }
+                Some(other_val) if my_val > other_val => {
+                    return Some(Ordering::Greater);
+                }
+                Some(_) => {}
             }
         }
         Some(Ordering::Equal)

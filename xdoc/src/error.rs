@@ -14,7 +14,14 @@ pub struct XErr {
 impl fmt::Display for XErr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(src) = &self.source {
-            write!(f, "{}:{} {}: {}", self.file, self.line, self.message, src.as_ref())
+            write!(
+                f,
+                "{}:{} {}: {}",
+                self.file,
+                self.line,
+                self.message,
+                src.as_ref()
+            )
         } else {
             write!(f, "{}:{} {}", self.file, self.line, self.message)
         }

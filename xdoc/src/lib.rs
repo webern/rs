@@ -48,15 +48,15 @@ pub struct ElementData {
     pub nodes: Vec<Node>,
 }
 
-const SMALLEST_ELEMENT: usize = 4; // <x/>
-
 impl ElementData {
     fn check(&self) -> Result<()> {
         if self.name.is_empty() {
             return raise!("Empty element name.");
         }
         if let Some(ns) = &self.namespace {
-            return raise!("Namespace should not be empty when the option is 'some'.");
+            if ns.is_empty() {
+                return raise!("Namespace should not be empty when the option is 'some'.");
+            }
         }
         for attribute_key in self.attributes.map().keys() {
             if attribute_key.is_empty() {
@@ -67,7 +67,9 @@ impl ElementData {
     }
 
     pub fn write<W>(&self, writer: &mut W, opts: &WriteOpts, depth: usize) -> Result<()>
-        where W: Write, {
+    where
+        W: Write,
+    {
         if let Err(e) = self.check() {
             return wrap!(e);
         }
@@ -95,12 +97,17 @@ impl ElementData {
             return wrap!(e);
         }
 
-        let attribute_keys = self.attributes.map().keys().map(|k| k.as_str()).collect::<Vec<&str>>();
-        for k in attribute_keys.iter() {
+        let attribute_keys = self
+            .attributes
+            .map()
+            .keys()
+            .map(|k| k.as_str())
+            .collect::<Vec<&str>>();
+        for &k in attribute_keys.iter() {
             if let Err(e) = write!(writer, " {}=\"", &k) {
                 return wrap!(e);
             }
-            if let Some(val) = self.attributes.map().get(&k.to_string()) {
+            if let Some(val) = self.attributes.map().get(k) {
                 // TODO - escape string
                 if let Err(e) = write!(writer, "{}", val) {
                     return wrap!(e);

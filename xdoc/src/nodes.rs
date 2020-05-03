@@ -1,9 +1,10 @@
 use std::cmp::Ordering;
 use std::collections::VecDeque;
+use std::hash::{Hash, Hasher};
 
 use crate::node::Node;
 
-#[derive(Debug, Eq, Hash)]
+#[derive(Debug, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Nodes(VecDeque<Node>);
 
@@ -90,5 +91,13 @@ impl PartialOrd for Nodes {
             return ordering == Ordering::Greater || ordering == Ordering::Equal;
         }
         false
+    }
+}
+
+impl Hash for Nodes {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        for node in self.0.iter() {
+            node.hash(state);
+        }
     }
 }

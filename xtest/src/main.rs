@@ -1,5 +1,5 @@
-use xtest::{Assertion, Expected, Syntax, TestMetadata};
 use xdoc::Name;
+use xtest::{Assertion, Expected, Syntax, TestMetadata};
 
 fn main() {
     let t = TestMetadata {

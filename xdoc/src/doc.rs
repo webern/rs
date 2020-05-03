@@ -1,5 +1,4 @@
 use std::default::Default;
-use std::io::SeekFrom::End;
 use std::io::Write;
 
 use crate::error::Result;
@@ -15,7 +14,7 @@ pub enum XmlVersion {
 
 impl Default for XmlVersion {
     fn default() -> Self {
-        return XmlVersion::None;
+        XmlVersion::None
     }
 }
 
@@ -28,7 +27,7 @@ pub enum Encoding {
 
 impl Default for Encoding {
     fn default() -> Self {
-        return Encoding::None;
+        Encoding::None
     }
 }
 
@@ -88,18 +87,24 @@ impl WriteOpts {
     }
 
     fn write_repeatedly<W>(writer: &mut W, num: usize, s: &str) -> Result<()>
-        where
-            W: Write, {
+    where
+        W: Write,
+    {
         let s = std::iter::repeat(s).take(num).collect::<String>();
-        if let Err(e) = write!(writer, "{}", s) { return wrap!(e); }
+        if let Err(e) = write!(writer, "{}", s) {
+            return wrap!(e);
+        }
         Ok(())
     }
 
     pub(crate) fn indent<W>(&self, writer: &mut W, depth: usize) -> Result<()>
-        where
-            W: Write, {
+    where
+        W: Write,
+    {
         match self.indent {
-            Indent::None => { return Ok(()); }
+            Indent::None => {
+                return Ok(());
+            }
             Indent::Spaces(n) => {
                 if let Err(e) = Self::write_repeatedly(writer, depth * n, " ") {
                     return wrap!(e);
@@ -115,8 +120,9 @@ impl WriteOpts {
     }
 
     pub(crate) fn newline<W>(&self, writer: &mut W) -> Result<()>
-        where
-            W: Write, {
+    where
+        W: Write,
+    {
         if let Err(e) = write!(writer, "{}", self.newline_str()) {
             return wrap!(e);
         }
@@ -130,29 +136,36 @@ impl Document {
     }
 
     pub fn from_root(root: Node) -> Self {
-        Document { xml_declaration: Default::default(), root }
+        Document {
+            xml_declaration: Default::default(),
+            root,
+        }
     }
 
     pub fn root(&self) -> &Node {
-        return &self.root;
+        &self.root
     }
 
     pub fn write<W>(&self, writer: &mut W) -> Result<()>
-        where
-            W: Write, {
+    where
+        W: Write,
+    {
         self.write_opts(writer, &WriteOpts::default())
     }
 
     pub fn write_opts<W>(&self, writer: &mut W, opts: &WriteOpts) -> Result<()>
-        where
-            W: Write, {
-        if self.xml_declaration.encoding != Encoding::None || self.xml_declaration.xml_version != XmlVersion::None {
+    where
+        W: Write,
+    {
+        if self.xml_declaration.encoding != Encoding::None
+            || self.xml_declaration.xml_version != XmlVersion::None
+        {
             if let Err(e) = write!(writer, "<?xml ") {
                 return wrap!(e);
             }
             let mut need_space = true;
             match self.xml_declaration.xml_version {
-                XmlVersion::None => { need_space = false }
+                XmlVersion::None => need_space = false,
                 XmlVersion::One => {
                     if let Err(e) = write!(writer, "version=\"1.0\"") {
                         return wrap!(e);
@@ -215,8 +228,8 @@ macro_rules! map (
 mod tests {
     use std::io::Cursor;
 
-    use crate::*;
     use crate::doc::{Encoding, XmlDeclaration, XmlVersion};
+    use crate::*;
 
     fn assert_ezfile(doc: &Document) {
         let root = doc.root();
@@ -293,7 +306,10 @@ mod tests {
         // Document::from_root(Node::Element(cats_data))
 
         Document {
-            xml_declaration: XmlDeclaration { xml_version: XmlVersion::One, encoding: Encoding::UTF8 },
+            xml_declaration: XmlDeclaration {
+                xml_version: XmlVersion::One,
+                encoding: Encoding::UTF8,
+            },
             root: Node::Element(cats_data),
         }
     }

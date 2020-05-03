@@ -181,6 +181,9 @@ impl Document {
             if let Err(e) = write!(writer, "?>") {
                 return wrap!(e);
             }
+            if let Err(e) = opts.newline(writer) {
+                return wrap!(e);
+            }
         }
 
         if let Node::Element(e) = self.root() {
@@ -190,9 +193,7 @@ impl Document {
         } else {
             return raise!("the root is not a node of element type.");
         }
-        // if let Err(e) = opts.newline(writer) {
-        //     return wrap!(e);
-        // }
+
         Ok(())
     }
 }

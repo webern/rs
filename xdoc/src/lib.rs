@@ -71,6 +71,13 @@ impl ElementData {
         if let Err(e) = self.check() {
             return wrap!(e);
         }
+        // Somewhat hacky, but if it's the root element then the caller needs to decide whether or
+        // not a newline precededs the element. For all other elements a newline should be OK.
+        if depth != 0 {
+            if let Err(e) = opts.newline(writer) {
+                return wrap!(e);
+            }
+        }
         if let Err(e) = opts.indent(writer, depth) {
             return wrap!(e);
         }
@@ -108,22 +115,22 @@ impl ElementData {
             if let Err(e) = write!(writer, "/>") {
                 return wrap!(e);
             } else {
-                if let Err(e) = opts.newline(writer) {
-                    return wrap!(e);
-                }
+                // if let Err(e) = opts.newline(writer) {
+                //     return wrap!(e);
+                // }
                 return Ok(());
             }
         } else {
-            if let Err(e) = opts.indent(writer, depth) {
-                return wrap!(e);
-            }
+            // if let Err(e) = opts.indent(writer, depth) {
+            //     return wrap!(e);
+            // }
             if let Err(e) = write!(writer, ">") {
                 return wrap!(e);
             }
         }
-        if let Err(e) = opts.newline(writer) {
-            return wrap!(e);
-        }
+        // if let Err(e) = opts.newline(writer) {
+        //     return wrap!(e);
+        // }
 
         for node in self.nodes.iter() {
             if let Err(e) = node.write(writer, opts, depth + 1) {
@@ -176,6 +183,6 @@ mod tests {
         assert!(result.is_ok());
         let data = c.into_inner();
         let data_str = std::str::from_utf8(data.as_slice()).unwrap();
-        assert_eq!("<root-element/>", data_str);
+        assert_eq!("<root-element/>\n", data_str);
     }
 }

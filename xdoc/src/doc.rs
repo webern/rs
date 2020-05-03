@@ -181,16 +181,19 @@ impl Document {
             if let Err(e) = write!(writer, "?>") {
                 return wrap!(e);
             }
-            if let Err(e) = opts.newline(writer) {
-                return wrap!(e);
-            }
         }
 
         if let Node::Element(e) = self.root() {
-            return e.write(writer, opts, 0);
+            if let Err(e) = e.write(writer, opts, 0) {
+                return wrap!(e);
+            }
         } else {
             return raise!("the root is not a node of element type.");
         }
+        // if let Err(e) = opts.newline(writer) {
+        //     return wrap!(e);
+        // }
+        Ok(())
     }
 }
 
@@ -237,9 +240,15 @@ mod tests {
                 assert_eq!(bishop.name, "cat");
                 assert_eq!(bishop.namespace, None);
                 assert_eq!(bishop.attributes.map().len(), 1);
-                assert_eq!(bishop.nodes.len(), 0);
                 let name = bishop.attributes.map().get("name").unwrap();
                 assert_eq!(name, "bishop");
+                // assert text data
+                assert_eq!(bishop.nodes.len(), 1);
+                if let Node::String(text) = bishop.nodes.get(0).unwrap() {
+                    assert_eq!(text, "punks");
+                } else {
+                    panic!("Expected to find a text node but it was not there.");
+                }
             } else {
                 panic!("bones was supposed to be an element but was not");
             }
@@ -247,6 +256,13 @@ mod tests {
             panic!("the root was not an element");
         }
     }
+
+    const EZFILE_STR: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
+<cats>
+  <cat name="bones"/>
+  <cat name="bishop">punks</cat>
+</cats>
+"#;
 
     fn create_ezfile() -> Document {
         let bones_data = ElementData {
@@ -260,7 +276,7 @@ mod tests {
             namespace: None,
             name: "cat".to_string(),
             attributes: OrdMap::from(map! { "name".to_string() => "bishop".to_string() }),
-            nodes: Vec::default(),
+            nodes: vec![Node::String("punks".to_string())],
         };
 
         let bones_element = Node::Element(bones_data);
@@ -295,8 +311,9 @@ mod tests {
         assert!(result.is_ok());
         let data = c.into_inner();
         let data_str = std::str::from_utf8(data.as_slice()).unwrap();
+        // TODO - remove this debugging write
         let we = std::fs::write("/Users/mjb/Desktop/early.xml", data_str);
         assert!(we.is_ok());
-        assert_eq!(data_str, "");
+        assert_eq!(data_str, EZFILE_STR);
     }
 }

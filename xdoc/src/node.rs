@@ -35,12 +35,18 @@ impl Node {
     pub fn write<W>(&self, writer: &mut W, opts: &WriteOpts, depth: usize) -> Result<()>
         where W: Write, {
         match self {
-            Node::Element(data) => return data.write(writer, opts, depth),
-            Node::String(_) => { return Ok(()); }
-            Node::CData(_) => { return Ok(()); }
-            Node::Comment(_) => { return Ok(()); }
-            Node::ProcessingInstruction(_) => { return Ok(()); }
-            Node::DocType(_) => { return Ok(()); }
+            Node::Element(data) => { return data.write(writer, opts, depth); }
+            Node::String(s) => {
+                // TODO - escape string
+                if let Err(e) = write!(writer, "{}", s) {
+                    return wrap!(e);
+                }
+                return Ok(());
+            }
+            Node::CData(_) => { return Ok(());/*TODO - implement*/ }
+            Node::Comment(_) => { return Ok(());/*TODO - implement*/ }
+            Node::ProcessingInstruction(_) => { return Ok(());/*TODO - implement*/ }
+            Node::DocType(_) => { return Ok(()); /*TODO - implement*/ }
         }
         Ok(())
     }

@@ -1,6 +1,0 @@
-{
-  "description": "processing instruction close with no open",
-  "syntax": {
-    "good": {}
-  }
-}

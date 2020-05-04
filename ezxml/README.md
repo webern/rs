@@ -16,7 +16,7 @@ This initial list gets me to a sort of 'pre-mvp' that can handle only the simple
  * [x] xdoc: write assertions for the ezfile structs
  * [x] xdoc: serialize the ezfile to xml
  * [x] xdoc: assert serialized xml equals a string constant of the xml
- * [ ] xdoc: serialize the ezfile to json
- * [ ] xtest: add the serialized ezfile data to the metadata file as an assertion.
+ * [x] xdoc: serialize the ezfile to json
+ * [x] xtest: add the serialized ezfile data to the metadata file as an assertion.
  * [ ] ezxml: generate an assertion of the ezfile using build.rs
  * [ ] ezxml: make the parser work so that the ezfile test passes

@@ -6,15 +6,15 @@ use crate::Node;
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
-pub enum XmlVersion {
+pub enum Version {
     None,
     One,
     OneDotOne,
 }
 
-impl Default for XmlVersion {
+impl Default for Version {
     fn default() -> Self {
-        XmlVersion::None
+        Version::None
     }
 }
 
@@ -22,7 +22,7 @@ impl Default for XmlVersion {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
 pub enum Encoding {
     None,
-    UTF8,
+    Utf8,
 }
 
 impl Default for Encoding {
@@ -33,15 +33,15 @@ impl Default for Encoding {
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
-pub struct XmlDeclaration {
-    xml_version: XmlVersion,
+pub struct Declaration {
+    version: Version,
     encoding: Encoding,
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
 pub struct Document {
-    pub xml_declaration: XmlDeclaration,
+    pub declaration: Declaration,
     pub root: Node,
 }
 
@@ -137,7 +137,7 @@ impl Document {
 
     pub fn from_root(root: Node) -> Self {
         Document {
-            xml_declaration: Default::default(),
+            declaration: Default::default(),
             root,
         }
     }
@@ -157,30 +157,30 @@ impl Document {
         where
             W: Write,
     {
-        if self.xml_declaration.encoding != Encoding::None
-            || self.xml_declaration.xml_version != XmlVersion::None
+        if self.declaration.encoding != Encoding::None
+            || self.declaration.version != Version::None
         {
             if let Err(e) = write!(writer, "<?xml ") {
                 return wrap!(e);
             }
             let mut need_space = true;
-            match self.xml_declaration.xml_version {
-                XmlVersion::None => need_space = false,
-                XmlVersion::One => {
+            match self.declaration.version {
+                Version::None => need_space = false,
+                Version::One => {
                     if let Err(e) = write!(writer, "version=\"1.0\"") {
                         return wrap!(e);
                     }
                 }
-                XmlVersion::OneDotOne => {
+                Version::OneDotOne => {
                     if let Err(e) = write!(writer, "version=\"1.1\"") {
                         return wrap!(e);
                     }
                 }
             }
 
-            match self.xml_declaration.encoding {
+            match self.declaration.encoding {
                 Encoding::None => {}
-                Encoding::UTF8 => {
+                Encoding::Utf8 => {
                     if need_space {
                         if let Err(e) = write!(writer, " ") {
                             return wrap!(e);
@@ -229,7 +229,7 @@ mod tests {
     use std::io::Cursor;
 
     use crate::*;
-    use crate::doc::{Encoding, XmlDeclaration, XmlVersion};
+    use crate::doc::{Declaration, Encoding, Version};
 
     fn assert_ezfile(doc: &Document) {
         let root = doc.root();
@@ -306,9 +306,9 @@ mod tests {
         // Document::from_root(Node::Element(cats_data))
 
         Document {
-            xml_declaration: XmlDeclaration {
-                xml_version: XmlVersion::One,
-                encoding: Encoding::UTF8,
+            declaration: Declaration {
+                version: Version::One,
+                encoding: Encoding::Utf8,
             },
             root: Node::Element(cats_data),
         }

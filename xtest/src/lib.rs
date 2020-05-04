@@ -2,12 +2,21 @@
 //! format) which describes the XML file. For example, some XML files include intentional syntax
 //! errors, and the the accompanying JSON manifest will make this apparent.
 
+#[macro_use]
+extern crate serde;
+
 use std::fs;
-use std::fs::{read_to_string, File};
+use std::fs::{File, read_to_string};
 use std::io::BufReader;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
+
+pub use metadata::Metadata;
+pub use xml_file::XmlFile;
+
+mod metadata;
+mod xml_file;
 
 // use serde_json::Value;
 
@@ -15,22 +24,8 @@ pub fn data_dir() -> PathBuf {
     my_crate_dir().join("data").canonicalize().unwrap()
 }
 
-/// `TestXmlFile` Represents a test file including paths to the test file and its metadata file.
-#[derive(Debug, Clone)]
-pub struct TestXmlFile {
-    pub name: String,
-    pub xml_file: PathBuf,
-    pub metadata_file: PathBuf,
-    pub metadata: TestMetadata,
-}
 
-impl TestXmlFile {
-    pub fn read_xml_file(&self) -> String {
-        read_to_string(&self.xml_file).unwrap()
-    }
-}
-
-pub fn list_test_files() -> Vec<TestXmlFile> {
+pub fn list_test_files() -> Vec<XmlFile> {
     let mut result = Vec::new();
     let xtest = list_xtest();
     for xml_file in xtest.iter() {
@@ -43,29 +38,29 @@ pub fn list_test_files() -> Vec<TestXmlFile> {
         let metadata_file = dir
             .to_path_buf()
             .join(format!("{}{}", name, ".metadata.json"));
-        result.push(TestXmlFile {
+        result.push(XmlFile {
             name,
-            xml_file: xml_file.into(),
-            metadata_file: metadata_file.clone(),
+            xml_path: xml_file.into(),
+            metadata_path: metadata_file.clone(),
             metadata: load_metadata(&metadata_file),
         })
     }
     result
 }
 
-pub fn get_test_info(test_name: &str) -> TestXmlFile {
+pub fn get_test_info(test_name: &str) -> XmlFile {
     get_test_info_with_dir(test_name, &data_dir())
 }
 
-fn get_test_info_with_dir(test_name: &str, dir: &PathBuf) -> TestXmlFile {
+fn get_test_info_with_dir(test_name: &str, dir: &PathBuf) -> XmlFile {
     let xml_file = dir.to_path_buf().join(format!("{}{}", test_name, ".xml"));
     let metadata_file = dir
         .to_path_buf()
         .join(format!("{}{}", test_name, ".metadata.json"));
-    TestXmlFile {
+    XmlFile {
         name: test_name.to_string(),
-        xml_file,
-        metadata_file: metadata_file.clone(),
+        xml_path: xml_file,
+        metadata_path: metadata_file.clone(),
         metadata: load_metadata(&metadata_file),
     }
 }
@@ -88,31 +83,6 @@ impl Default for Syntax {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq, Default)]
-pub struct TestMetadata {
-    pub description: String,
-    pub syntax: Syntax,
-    pub assertions: Option<Vec<Assertion>>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq)]
-#[serde(rename_all = "snake_case")]
-pub enum Expected {
-    NotFound,
-    Attribute { value: String },
-}
-
-impl Default for Expected {
-    fn default() -> Self {
-        Expected::NotFound
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq, Default)]
-pub struct Assertion {
-    pub path: String,
-    pub expected: Expected,
-}
 
 // PRIVATE
 
@@ -163,7 +133,7 @@ fn list_xtest() -> Vec<PathBuf> {
 //         .collect()
 // }
 
-fn load_metadata(p: &PathBuf) -> TestMetadata {
+fn load_metadata(p: &PathBuf) -> Metadata {
     // Open the file in read-only mode with buffer.
     let file = File::open(p).unwrap();
     let reader = BufReader::new(file);

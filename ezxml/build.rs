@@ -1,4 +1,4 @@
-// Automatically generate README.md from rustdoc.
+// Automatically generate README.md and xml parse tests.
 
 use std::env;
 use std::fs::File;
@@ -32,7 +32,7 @@ fn generate_readme() {
         false, // add license
         true,  // indent headings
     )
-    .unwrap();
+        .unwrap();
 
     let mut readme = File::create("README.md").unwrap();
     readme.write_all(content.as_bytes()).unwrap();
@@ -43,7 +43,7 @@ fn generate_tests() {
     if env::var_os("EZXML_GENERATE_TESTS").is_none() {
         return;
     }
-    let xtest = xtest::list_test_files();
+    let xtest = xtest::load_all();
     let test_file_path = integ_test_dir().join("parse_tests.rs");
     let _ = std::fs::remove_file(&test_file_path);
     let mut f = std::fs::File::create(&test_file_path).unwrap();
@@ -64,12 +64,7 @@ fn generate_tests() {
             ),
         };
         writeln!(f, "{}", test_fn).unwrap();
-        writeln!(
-            f,
-            "    let info = xtest::get_test_info(\"{}\");",
-            xml_file.name
-        )
-        .unwrap();
+        writeln!(f, "    let info = xtest::load(\"{}\");", xml_file.name).unwrap();
         match xml_file.metadata.syntax {
             Syntax::Bad {
                 character_position,
@@ -97,26 +92,11 @@ fn generate_tests() {
         f.write_all(b"}\n\n").unwrap();
         // f.write(b"");
     }
-
-    // Command::new("cargo fmt")
-    //     .args([""])
-    //     .output()
-
+    
     Command::new("cargo")
         .args(&["fmt", "--", test_file_path.to_str().unwrap()])
         .output()
         .expect("failed to execute process");
-    // .expect("failed to execute process")
-    // .stdout(Stdio::pipe())
-    // .stderr(Stdio::from(stderr_file))
-    // .spawn()
-    // .context(error::CommandSpawn {
-    //     command: command.clone(),
-    // })?
-    // .wait_with_output()
-    // .context(error::CommandFinish {
-    //     command: command.clone(),
-    // })?;
 }
 
 fn integ_test_dir() -> PathBuf {

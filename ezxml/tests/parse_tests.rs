@@ -3,7 +3,7 @@ use ezxml::Node;
 
 #[test]
 fn bad_syntax_unescaped_angle_test() {
-    let info = xtest::get_test_info("unescaped-angle");
+    let info = xtest::load("unescaped-angle");
     let xml_str = info.read_xml_file();
     let parse_result = ezxml::parse_str(xml_str.as_str());
     assert!(parse_result.is_err());
@@ -20,14 +20,14 @@ fn bad_syntax_unescaped_angle_test() {
 
 #[test]
 fn good_syntax_difficult_nodes_test() {
-    let info = xtest::get_test_info("difficult-nodes");
+    let info = xtest::load("difficult-nodes");
     let _xml_str = info.read_xml_file();
     // TODO - assert goodness
 }
 
 #[test]
 fn bad_syntax_angle_in_attribute_value_test() {
-    let info = xtest::get_test_info("angle-in-attribute-value");
+    let info = xtest::load("angle-in-attribute-value");
     let xml_str = info.read_xml_file();
     let parse_result = ezxml::parse_str(xml_str.as_str());
     assert!(parse_result.is_err());
@@ -44,14 +44,14 @@ fn bad_syntax_angle_in_attribute_value_test() {
 
 #[test]
 fn good_syntax_ezfile_test() {
-    let info = xtest::get_test_info("ezfile");
+    let info = xtest::load("ezfile");
     let _xml_str = info.read_xml_file();
     // TODO - assert goodness
 }
 
 #[test]
 fn bad_syntax_pi_stray_text_test() {
-    let info = xtest::get_test_info("pi-stray-text");
+    let info = xtest::load("pi-stray-text");
     let xml_str = info.read_xml_file();
     let parse_result = ezxml::parse_str(xml_str.as_str());
     assert!(parse_result.is_err());

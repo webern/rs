@@ -4,5 +4,12 @@ version = "0.0.0"
 authors = ["Matthew James Briggs <matthew.james.briggs@gmail.com>"]
 edition = "2018"
 
+[features]
+# serde is a feature that enables XML structs to be serialized to json.
+default = []
+
+
 [dependencies]
+# TODO - include multiple serde dependencies in a single xdoc feature, e.g. 'json'
 serde = { version = "1.0.106", optional = true, features = ["derive"] }
+serde_json = { version = "1.0.48", optional = true }

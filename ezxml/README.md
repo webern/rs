@@ -2,9 +2,15 @@
 
 Current version: 0.0.0
 
-Half baked work on XML in Rust.
+
+The `ezxml` library is in its infancy and may never amount to much (because XML is hard).
+
+The goal is to read XML files into structured data, and write them back.
+Ultimately I am interested in generating types from XSD, but it's a long way between here and there.
 
 ## TODO
+
+This initial list gets me to a sort of 'pre-mvp' that can handle only the simplest of XML documents.
 
  * [x] xdoc: create the ezfile in a test using structs
  * [x] xdoc: write assertions for the ezfile structs

@@ -5,7 +5,7 @@ use crate::error::Result;
 use crate::Node;
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
 pub enum XmlVersion {
     None,
     One,
@@ -19,7 +19,7 @@ impl Default for XmlVersion {
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
 pub enum Encoding {
     None,
     UTF8,
@@ -32,14 +32,14 @@ impl Default for Encoding {
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
 pub struct XmlDeclaration {
     xml_version: XmlVersion,
     encoding: Encoding,
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
 pub struct Document {
     pub xml_declaration: XmlDeclaration,
     pub root: Node,
@@ -87,8 +87,8 @@ impl WriteOpts {
     }
 
     fn write_repeatedly<W>(writer: &mut W, num: usize, s: &str) -> Result<()>
-    where
-        W: Write,
+        where
+            W: Write,
     {
         let s = std::iter::repeat(s).take(num).collect::<String>();
         if let Err(e) = write!(writer, "{}", s) {
@@ -98,8 +98,8 @@ impl WriteOpts {
     }
 
     pub(crate) fn indent<W>(&self, writer: &mut W, depth: usize) -> Result<()>
-    where
-        W: Write,
+        where
+            W: Write,
     {
         match self.indent {
             Indent::None => {
@@ -120,8 +120,8 @@ impl WriteOpts {
     }
 
     pub(crate) fn newline<W>(&self, writer: &mut W) -> Result<()>
-    where
-        W: Write,
+        where
+            W: Write,
     {
         if let Err(e) = write!(writer, "{}", self.newline_str()) {
             return wrap!(e);
@@ -147,15 +147,15 @@ impl Document {
     }
 
     pub fn write<W>(&self, writer: &mut W) -> Result<()>
-    where
-        W: Write,
+        where
+            W: Write,
     {
         self.write_opts(writer, &WriteOpts::default())
     }
 
     pub fn write_opts<W>(&self, writer: &mut W, opts: &WriteOpts) -> Result<()>
-    where
-        W: Write,
+        where
+            W: Write,
     {
         if self.xml_declaration.encoding != Encoding::None
             || self.xml_declaration.xml_version != XmlVersion::None
@@ -228,8 +228,8 @@ macro_rules! map (
 mod tests {
     use std::io::Cursor;
 
-    use crate::doc::{Encoding, XmlDeclaration, XmlVersion};
     use crate::*;
+    use crate::doc::{Encoding, XmlDeclaration, XmlVersion};
 
     fn assert_ezfile(doc: &Document) {
         let root = doc.root();
@@ -332,5 +332,15 @@ mod tests {
         let we = std::fs::write("/Users/mjb/Desktop/early.xml", data_str);
         assert!(we.is_ok());
         assert_eq!(data_str, EZFILE_STR);
+    }
+
+
+    // TODO - feature flagging does not work for serde
+    #[test]
+    #[cfg(feature = "serde")]
+    fn write_ezfile_as_json() {
+        let doc = create_ezfile();
+        let json_str = serde_json::to_string_pretty(&doc).unwrap();
+        std::fs::write("/Users/mjb/Desktop/ezfile.json", json_str).unwrap();
     }
 }

@@ -6,7 +6,6 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::process::Command;
 
-use xtest;
 use xtest::Syntax;
 
 fn main() {
@@ -33,7 +32,7 @@ fn generate_readme() {
         false, // add license
         true,  // indent headings
     )
-    .unwrap();
+        .unwrap();
 
     let mut readme = File::create("README.md").unwrap();
     readme.write_all(content.as_bytes()).unwrap();
@@ -70,7 +69,7 @@ fn generate_tests() {
             "    let info = xtest::get_test_info(\"{}\");",
             xml_file.name
         )
-        .unwrap();
+            .unwrap();
         match xml_file.metadata.syntax {
             Syntax::Bad {
                 character_position,

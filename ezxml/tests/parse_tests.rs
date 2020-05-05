@@ -21,8 +21,9 @@ fn bad_syntax_unescaped_angle_test() {
 #[test]
 fn good_syntax_difficult_nodes_test() {
     let info = xtest::load("difficult-nodes");
-    let _xml_str = info.read_xml_file();
-    // TODO - assert goodness
+    let xml_str = info.read_xml_file();
+    let parse_result = ezxml::parse_str(xml_str.as_str());
+    assert!(parse_result.is_ok());
 }
 
 #[test]
@@ -45,8 +46,12 @@ fn bad_syntax_angle_in_attribute_value_test() {
 #[test]
 fn good_syntax_ezfile_test() {
     let info = xtest::load("ezfile");
-    let _xml_str = info.read_xml_file();
-    // TODO - assert goodness
+    let xml_str = info.read_xml_file();
+    let parse_result = ezxml::parse_str(xml_str.as_str());
+    assert!(parse_result.is_ok());
+    let actual = parse_result.unwrap();
+    let expected = &info.metadata.expected.unwrap();
+    assert_eq!(expected, &actual)
 }
 
 #[test]

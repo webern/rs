@@ -19,4 +19,4 @@ pub use xml_file::{Syntax, XmlFile};
 mod io;
 mod metadata;
 mod xml_file;
-
+pub mod gen;

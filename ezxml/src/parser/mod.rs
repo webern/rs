@@ -5,7 +5,7 @@ use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
-use xdoc::Document;
+use xdoc::{Document, OrdMap};
 
 use crate::error::{self, Result};
 use crate::parser::TagStatus::OutsideTag;
@@ -88,6 +88,7 @@ pub fn parse_str(s: &str) -> Result<Document> {
 enum TagStatus {
     TagOpen(u64),
     InsideTag(u64),
+    InsideProcessingInstruction(u64),
     TagClose(u64, u64),
     OutsideTag,
 }
@@ -103,10 +104,10 @@ fn is_space_or_alpha(c: char) -> bool {
 }
 
 fn is_pi_indicator(c: char) -> bool {
-    c == '?' || c == '!'
+    c == '?'
 }
 
-fn process_char(_iter: &mut Chars, state: &mut ParserState) -> Result<()> {
+fn process_char(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
     let _state_str = format!("{:?}", state);
     match state.tag_status {
         TagStatus::TagOpen(pos) => {
@@ -118,8 +119,12 @@ fn process_char(_iter: &mut Chars, state: &mut ParserState) -> Result<()> {
                     position: state.position,
                     backtrace: Backtrace::generate(),
                 });
+            } else if is_pi_indicator(state.current_char) {
+                state.tag_status = TagStatus::InsideProcessingInstruction(pos);
+                take_processing_instruction(iter, state);
+            } else {
+                state.tag_status = TagStatus::InsideTag(pos)
             }
-            state.tag_status = TagStatus::InsideTag(pos)
         }
         TagStatus::InsideTag(pos) => {
             if state.current_char == '>' {
@@ -131,6 +136,7 @@ fn process_char(_iter: &mut Chars, state: &mut ParserState) -> Result<()> {
                 });
             }
         }
+        TagStatus::InsideProcessingInstruction(pos) => {}
         TagStatus::TagClose(_start, _end) => {
             if state.current_char == '<' {
                 state.tag_status = TagStatus::TagOpen(state.position.absolute);
@@ -154,6 +160,89 @@ fn process_char(_iter: &mut Chars, state: &mut ParserState) -> Result<()> {
                 });
             }
         }
+    }
+    Ok(())
+}
+
+#[derive(PartialEq)]
+enum PIStatus {
+    BeforeTarget,
+    InsideTarget,
+    AfterTarget,
+    KeyOpenQuote,
+    InsideKey,
+    KeyCloseQuote,
+    AfterKeyCloseQuote,
+    Equals,
+    AfterEquals,
+    ValOpenQuote,
+    InsideVal,
+    ValCloseQuote,
+    AfterVal,
+    QuestionMark,
+    Close,
+}
+
+struct PIProcessor {
+    status: PIStatus,
+    buffer: String,
+    target: String,
+    instructions: OrdMap,
+}
+
+impl PIProcessor {
+    fn new() -> Self {
+        Self {
+            status: PIStatus::BeforeTarget,
+            buffer: "".to_string(),
+            target: "".to_string(),
+            instructions: Default::default(),
+        }
+    }
+}
+
+fn take_processing_instruction(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
+    let mut processor = PIProcessor::new();
+    loop {
+        if processor.status == PIStatus::Close {
+            break;
+        }
+        if let Err(e) = take_processing_instruction_char(iter, state, &mut processor) {
+            return Err(e);
+        }
+    }
+
+    Ok(())
+}
+
+fn take_processing_instruction_char(iter: &mut Chars, state: &mut ParserState, processor: &mut PIProcessor) -> Result<()> {
+    match processor.status {
+        PIStatus::BeforeTarget => {
+            if !is_space_or_alpha(state.current_char) {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
+            } else if is_space(state.current_char) {
+                return Ok(());
+            } else {
+                processor.target.push(state.current_char);
+            }
+        }
+        PIStatus::InsideTarget => {}
+        PIStatus::AfterTarget => {}
+        PIStatus::KeyOpenQuote => {}
+        PIStatus::InsideKey => {}
+        PIStatus::KeyCloseQuote => {}
+        PIStatus::AfterKeyCloseQuote => {}
+        PIStatus::Equals => {}
+        PIStatus::AfterEquals => {}
+        PIStatus::ValOpenQuote => {}
+        PIStatus::InsideVal => {}
+        PIStatus::ValCloseQuote => {}
+        PIStatus::AfterVal => {}
+        PIStatus::QuestionMark => {}
+        PIStatus::Close => {}
     }
     Ok(())
 }

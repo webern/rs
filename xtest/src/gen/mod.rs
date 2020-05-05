@@ -90,21 +90,17 @@ fn write_good_syntax_test(f: &mut File, xml_file: &XmlFile) {
     if let Some(expected) = &xml_file.metadata.expected {
         writeln!(f, "let actual = parse_result.unwrap();").unwrap();
         writeln!(f, "let expected = &info.metadata.expected.unwrap();").unwrap();
-        // writeln!(f, "let equal = expected == &actual;").unwrap();
-        writeln!(f, "assert_eq!(expected, &actual)").unwrap();
-        // TODO - check if they are equal, if not, do an assertion on the string xml before equal assertion.
+        writeln!(f, "let equal = expected == &actual;").unwrap();
+        writeln!(f, "if !equal {{").unwrap();
+        // We prefer to assert that the strings are not equal for the visual aid when debugging.
+        writeln!(f, "let expected_str = expected.to_string();").unwrap();
+        writeln!(f, "let actual_str = actual.to_string();").unwrap();
+        writeln!(f, "if expected_str != actual_str {{").unwrap();
+        writeln!(f, "assert_eq!(expected_str, actual_str);").unwrap();
+        writeln!(f, "}} else {{").unwrap();
+        writeln!(f, "assert!(equal);").unwrap();
+        writeln!(f, "}}").unwrap();
+        writeln!(f, "}}").unwrap();
     }
-    // writeln!(f, "let xml_str = info.read_xml_file();").unwrap();
-    // writeln!(f, "let parse_result = ezxml::parse_str(xml_str.as_str());").unwrap();
-    // writeln!(f, "assert!(parse_result.is_err());").unwrap();
-    // writeln!(f, "let err = parse_result.err().unwrap();").unwrap();
-    // writeln!(f, "match err {{").unwrap();
-    // writeln!(f, "ezxml::error::Error::Parse {{ position, ..}} => {{").unwrap();
-    // writeln!(f, "assert_eq!(position.absolute, {});", character_position).unwrap();
-    // writeln!(f, "assert_eq!(position.line, {});", line).unwrap();
-    // writeln!(f, "assert_eq!(position.column, {});", column).unwrap();
-    // writeln!(f, "}}").unwrap();
-    // writeln!(f, "_ => panic!(\"Error was expected to be of type ezxml::error::Error::Parse, but was not.\")").unwrap();
-    // writeln!(f, "}}").unwrap();
 }
 

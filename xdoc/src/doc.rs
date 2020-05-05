@@ -1,8 +1,9 @@
 use std::default::Default;
-use std::io::Write;
+use std::io::{Cursor, Write};
+use std::str::Utf8Error;
 
-use crate::error::Result;
-use crate::Node;
+use crate::{ElementData, Node};
+use crate::error::{Result, XErr};
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
@@ -38,11 +39,25 @@ pub struct Declaration {
     encoding: Encoding,
 }
 
-#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
+#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
 pub struct Document {
     pub declaration: Declaration,
     pub root: Node,
+}
+
+impl Default for Document {
+    fn default() -> Self {
+        Document {
+            declaration: Declaration::default(),
+            root: Node::Element(ElementData {
+                namespace: None,
+                name: "root".to_string(),
+                attributes: Default::default(),
+                nodes: vec![],
+            }),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
@@ -199,8 +214,8 @@ impl Document {
             }
         }
 
-        if let Node::Element(e) = self.root() {
-            if let Err(e) = e.write(writer, opts, 0) {
+        if let Node::Element(element) = self.root() {
+            if let Err(e) = element.write(writer, opts, 0) {
                 return wrap!(e);
             }
         } else {
@@ -208,6 +223,28 @@ impl Document {
         }
 
         Ok(())
+    }
+
+    pub fn to_string_opts(&self, opts: &WriteOpts) -> Result<String> {
+        let mut c = Cursor::new(Vec::new());
+        if let Err(e) = self.write_opts(&mut c, &opts) {
+            return wrap!(e);
+        }
+        let data = c.into_inner();
+        match std::str::from_utf8(data.as_slice()) {
+            Ok(s) => { Ok(s.to_owned()) }
+            Err(e) => { wrap!(e) }
+        }
+    }
+}
+
+impl ToString for Document {
+    fn to_string(&self) -> String {
+        let opts = WriteOpts::default();
+        match self.to_string_opts(&opts) {
+            Ok(s) => { s }
+            Err(e) => { "<error/>".to_string() }
+        }
     }
 }
 

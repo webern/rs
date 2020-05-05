@@ -51,7 +51,17 @@ fn good_syntax_ezfile_test() {
     assert!(parse_result.is_ok());
     let actual = parse_result.unwrap();
     let expected = &info.metadata.expected.unwrap();
-    assert_eq!(expected, &actual)
+    let equal = expected == &actual;
+    if !equal {
+        // We prefer to assert that the strings are not equal for the visual aid in debugging.
+        let expected_str = expected.to_string();
+        let actual_str = actual.to_string();
+        if expected_str != actual_str {
+            assert_eq!(expected_str, actual_str);
+        } else {
+            assert!(equal);
+        }
+    }
 }
 
 #[test]

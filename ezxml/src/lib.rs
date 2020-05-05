@@ -15,7 +15,7 @@ This initial list gets me to a sort of 'pre-mvp' that can handle only the simple
  * [x] xdoc: assert serialized xml equals a string constant of the xml
  * [x] xdoc: serialize the ezfile to json
  * [x] xtest: add the serialized ezfile data to the metadata file as an assertion.
- * [ ] ezxml: generate an assertion of the ezfile using build.rs
+ * [x] ezxml: generate an assertion of the ezfile using build.rs
  * [ ] ezxml: make the parser work so that the ezfile test passes
 */
 

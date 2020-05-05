@@ -53,7 +53,6 @@ fn good_syntax_ezfile_test() {
     let expected = &info.metadata.expected.unwrap();
     let equal = expected == &actual;
     if !equal {
-        // We prefer to assert that the strings are not equal for the visual aid in debugging.
         let expected_str = expected.to_string();
         let actual_str = actual.to_string();
         if expected_str != actual_str {

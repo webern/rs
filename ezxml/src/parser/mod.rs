@@ -330,11 +330,12 @@ fn advance_parser(iter: &mut Chars<'_>, state: &mut ParserState) -> bool {
 
 
 fn is_name_start_char(c: char) -> bool {
-// https://www.w3.org/TR/2008/REC-xml-20081126/#NT-NameStartChar
-// [4]   	NameStartChar	   ::=   	":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] |
-// [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] |
-// [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
-// let x = c as u64;
+    // TODO oops make sure its the same as 1.1 https://www.w3.org/TR/2006/REC-xml11-20060816/
+    // https://www.w3.org/TR/2008/REC-xml-20081126/#NT-NameStartChar
+    // [4]   	NameStartChar	   ::=   	":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] |
+    // [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] |
+    // [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
+    // let x = c as u64;
     match c {
         'A'..='Z' => true,
         'a'..='z' => true,
@@ -357,8 +358,9 @@ fn is_name_start_char(c: char) -> bool {
 }
 
 fn is_name_char(c: char) -> bool {
-// https://www.w3.org/TR/2008/REC-xml-20081126/#NT-NameChar
-// [4a] NameChar ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
+    // TODO oops make sure its the same as 1.1 https://www.w3.org/TR/2006/REC-xml11-20060816/
+    // https://www.w3.org/TR/2008/REC-xml-20081126/#NT-NameChar
+    // [4a] NameChar ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
     if is_name_start_char(c) {
         return true;
     }

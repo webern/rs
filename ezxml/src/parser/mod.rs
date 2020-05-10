@@ -8,6 +8,7 @@ use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 use xdoc::{Document, OrdMap};
 
 use crate::error::{self, Result};
+// use crate::parser::is_name_start_char;
 use crate::parser::TagStatus::OutsideTag;
 
 // Comparison traits: Eq, PartialEq, Ord, PartialOrd.
@@ -176,10 +177,8 @@ enum PIStatus {
     BeforeTarget,
     InsideTarget,
     AfterTarget,
-    KeyOpenQuote,
     InsideKey,
-    KeyCloseQuote,
-    AfterKeyCloseQuote,
+    AfterKey,
     Equals,
     AfterEquals,
     ValOpenQuote,
@@ -192,8 +191,9 @@ enum PIStatus {
 
 struct PIProcessor {
     status: PIStatus,
-    buffer: String,
     target: String,
+    key_buffer: String,
+    value_buffer: String,
     instructions: OrdMap,
     // done: bool,
 }
@@ -202,24 +202,39 @@ impl PIProcessor {
     fn new() -> Self {
         Self {
             status: PIStatus::BeforeTarget,
-            buffer: "".to_string(),
             target: "".to_string(),
+            key_buffer: "".to_string(),
+            value_buffer: "".to_string(),
             instructions: Default::default(),
-            // done: false,
         }
+    }
+
+    /// Takes the current strings from `key_buffer` and `value_buffer` and adds them to the
+    /// `instructions`. Clears these buffers to begin processing the next key/value pair.
+    fn take_buffers(&mut self) -> Result<()> {
+        if self.key_buffer.is_empty() {
+            // TODO - better error
+            return Err(error::Error::Bug { message: "Empty key - this is a bug and should have been detected sooner.".to_string() });
+        }
+        if let Some(_) = self.instructions.mut_map().insert(self.key_buffer.clone(), self.value_buffer.clone()) {
+            // TODO - better error
+            return Err(error::Error::Bug { message: "Duplicate key".to_string() });
+        }
+        self.key_buffer.clear();
+        self.value_buffer.clear();
+        Ok(())
     }
 }
 
 fn take_processing_instruction(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
     let mut processor = PIProcessor::new();
     loop {
-        if processor.status == PIStatus::Close {
-            break;
-        }
         if let Err(e) = take_processing_instruction_char(iter, state, &mut processor) {
             return Err(e);
         }
-
+        if processor.status == PIStatus::Close {
+            break;
+        }
         // advance state here?
 
         // if processor.done {
@@ -272,37 +287,133 @@ const U_2040: char = '\u{2040}';
 
 
 fn take_processing_instruction_char(iter: &mut Chars, state: &mut ParserState, processor: &mut PIProcessor) -> Result<()> {
+    let ch = state.current_char;
+    println!("{}", ch);
     match processor.status {
         PIStatus::BeforeTarget => {
-            if !state.current_char.is_alphabetic() {
-                let c = state.current_char;
-
+            if !is_name_start_char(state.current_char) {
                 return Err(error::Error::Parse {
                     position: state.position,
                     backtrace: Backtrace::generate(),
                 });
-            } else if state.current_char.is_ascii_whitespace() {
-                return Ok(());
             } else {
-                let x = U_EFFFF as u32;
-                println!("{}", x);
+                processor.target.push(state.current_char);
+                processor.status = PIStatus::InsideTarget;
+            }
+        }
+        PIStatus::InsideTarget => {
+            if state.current_char.is_ascii_whitespace() {
+                processor.status = PIStatus::AfterTarget;
+            } else if !is_name_char(state.current_char) {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
+            } else {
                 processor.target.push(state.current_char);
             }
         }
-        PIStatus::InsideTarget => {}
-        PIStatus::AfterTarget => {}
-        PIStatus::KeyOpenQuote => {}
-        PIStatus::InsideKey => {}
-        PIStatus::KeyCloseQuote => {}
-        PIStatus::AfterKeyCloseQuote => {}
-        PIStatus::Equals => {}
-        PIStatus::AfterEquals => {}
-        PIStatus::ValOpenQuote => {}
-        PIStatus::InsideVal => {}
-        PIStatus::ValCloseQuote => {}
-        PIStatus::AfterVal => {}
-        PIStatus::QuestionMark => {}
-        PIStatus::Close => {}
+        PIStatus::AfterTarget => {
+            if is_name_start_char(state.current_char) {
+                processor.key_buffer.push(state.current_char);
+                processor.status = PIStatus::InsideKey;
+            } else if !state.current_char.is_ascii_whitespace() {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
+            }
+        }
+        PIStatus::InsideKey => {
+            if is_name_char(state.current_char) {
+                processor.key_buffer.push(state.current_char);
+                processor.status = PIStatus::InsideKey;
+            } else if state.current_char == '=' {
+                processor.status = PIStatus::Equals;
+            } else if state.current_char.is_ascii_whitespace() {
+                processor.status = PIStatus::AfterKey;
+            } else {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
+            }
+        }
+        PIStatus::AfterKey => {
+            if state.current_char == '=' {
+                processor.status = PIStatus::Equals;
+            } else if !state.current_char.is_ascii_whitespace() {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
+            }
+        }
+        PIStatus::Equals | PIStatus::AfterEquals => {
+            if state.current_char == '"' {
+                processor.status = PIStatus::ValOpenQuote;
+            } else if state.current_char.is_ascii_whitespace() {
+                processor.status = PIStatus::AfterEquals;
+            } else {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
+            }
+        }
+        PIStatus::ValOpenQuote | PIStatus::InsideVal => {
+            if state.current_char == '"' {
+                if let Err(_) = processor.take_buffers() {
+                    return Err(error::Error::Parse {
+                        position: state.position,
+                        backtrace: Backtrace::generate(),
+                    });
+                }
+                processor.status = PIStatus::ValCloseQuote;
+            } else {
+                // TODO - handle escape sequences
+                processor.value_buffer.push(state.current_char);
+                processor.status = PIStatus::InsideVal;
+            }
+        }
+        PIStatus::ValCloseQuote => {
+            if state.current_char.is_ascii_whitespace() {
+                processor.status = PIStatus::AfterVal;
+            } else if state.current_char == '?' {
+                processor.status = PIStatus::QuestionMark;
+            } else {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
+            }
+        }
+        PIStatus::AfterVal => {
+            if state.current_char.is_ascii_whitespace() {
+                processor.status = PIStatus::AfterVal;
+            } else if state.current_char == '?' {
+                processor.status = PIStatus::QuestionMark;
+            } else if is_name_start_char(state.current_char) {
+                processor.key_buffer.push(state.current_char);
+                processor.status = PIStatus::InsideKey;
+            } else {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
+            }
+        }
+        PIStatus::QuestionMark => {
+            if state.current_char == '>' {
+                processor.status = PIStatus::Close;
+            } else {
+                return Err(error::Error::Parse {
+                    position: state.position,
+                    backtrace: Backtrace::generate(),
+                });
+            }
+        }
+        PIStatus::Close => { /* done */ }
     }
     Ok(())
 }

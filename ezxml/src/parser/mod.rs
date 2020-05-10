@@ -5,7 +5,7 @@ use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
-use xdoc::{Document, OrdMap};
+use xdoc::{Document, OrdMap, PIData};
 
 use crate::error::{self, Result};
 // use crate::parser::is_name_start_char;
@@ -123,7 +123,11 @@ fn process_char(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
             } else if is_pi_indicator(state.current_char) {
                 state.tag_status = TagStatus::InsideProcessingInstruction(pos);
                 if advance_parser(iter, state) {
-                    take_processing_instruction(iter, state);
+                    let result = parse_pi(iter, state);
+                    match result {
+                        Ok(pi_data) => { /*TODO use pi_data*/ }
+                        Err(e) => { /* TODO return the error*/ }
+                    }
                 } else {
                     return Err(error::Error::Parse {
                         position: state.position,
@@ -191,21 +195,18 @@ enum PIStatus {
 
 struct PIProcessor {
     status: PIStatus,
-    target: String,
     key_buffer: String,
     value_buffer: String,
-    instructions: OrdMap,
-    // done: bool,
+    pi_data: PIData,
 }
 
 impl PIProcessor {
     fn new() -> Self {
         Self {
             status: PIStatus::BeforeTarget,
-            target: "".to_string(),
             key_buffer: "".to_string(),
             value_buffer: "".to_string(),
-            instructions: Default::default(),
+            pi_data: PIData::default(),
         }
     }
 
@@ -216,7 +217,7 @@ impl PIProcessor {
             // TODO - better error
             return Err(error::Error::Bug { message: "Empty key - this is a bug and should have been detected sooner.".to_string() });
         }
-        if let Some(_) = self.instructions.mut_map().insert(self.key_buffer.clone(), self.value_buffer.clone()) {
+        if let Some(_) = self.pi_data.instructions.mut_map().insert(self.key_buffer.clone(), self.value_buffer.clone()) {
             // TODO - better error
             return Err(error::Error::Bug { message: "Duplicate key".to_string() });
         }
@@ -226,7 +227,7 @@ impl PIProcessor {
     }
 }
 
-fn take_processing_instruction(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
+fn parse_pi(iter: &mut Chars, state: &mut ParserState) -> Result<PIData> {
     let mut processor = PIProcessor::new();
     loop {
         if let Err(e) = take_processing_instruction_char(iter, state, &mut processor) {
@@ -249,7 +250,7 @@ fn take_processing_instruction(iter: &mut Chars, state: &mut ParserState) -> Res
         }
     }
 
-    Ok(())
+    Ok(processor.pi_data)
 }
 
 // for valid name start char ranges
@@ -297,7 +298,7 @@ fn take_processing_instruction_char(iter: &mut Chars, state: &mut ParserState, p
                     backtrace: Backtrace::generate(),
                 });
             } else {
-                processor.target.push(state.current_char);
+                processor.pi_data.target.push(state.current_char);
                 processor.status = PIStatus::InsideTarget;
             }
         }
@@ -310,7 +311,7 @@ fn take_processing_instruction_char(iter: &mut Chars, state: &mut ParserState, p
                     backtrace: Backtrace::generate(),
                 });
             } else {
-                processor.target.push(state.current_char);
+                processor.pi_data.target.push(state.current_char);
             }
         }
         PIStatus::AfterTarget => {

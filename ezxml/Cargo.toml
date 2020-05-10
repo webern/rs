@@ -9,7 +9,7 @@ snafu = "0.6.2"
 env_logger = "0.7.1"
 log = "0.4.8"
 xdoc = { version = "0.0.0", path = "../xdoc" }
-skfhskjhf = { version = "0.0.0", path = "../ds" }
+ds = { version = "0.0.0", path = "../ds" }
 
 [build-dependencies]
 cargo-readme = "3.2.0"

@@ -35,8 +35,8 @@ impl Default for Encoding {
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
 pub struct Declaration {
-    version: Version,
-    encoding: Encoding,
+    pub version: Version,
+    pub encoding: Encoding,
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]

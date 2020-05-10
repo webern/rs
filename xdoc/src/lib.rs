@@ -5,6 +5,7 @@ extern crate serde;
 use std::hash::Hash;
 use std::io::Write;
 
+pub use doc::{Encoding, Version};
 pub use doc::Document;
 pub use node::Node;
 pub use nodes::Nodes;

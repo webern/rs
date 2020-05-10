@@ -85,6 +85,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "ds"
+version = "0.0.0"
+
+[[package]]
 name = "env_logger"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -102,9 +106,9 @@ name = "ezxml"
 version = "0.0.0"
 dependencies = [
  "cargo-readme",
+ "ds",
  "env_logger",
  "log",
- "skfhskjhf",
  "snafu",
  "test-dir",
  "xdoc",
@@ -313,10 +317,6 @@ checksum = "625fb0da2b006092b426a94acc1611bec52f2ec27bb27b266a9f93c29ee38eda"
 dependencies = [
  "serde",
 ]
-
-[[package]]
-name = "skfhskjhf"
-version = "0.0.0"
 
 [[package]]
 name = "snafu"

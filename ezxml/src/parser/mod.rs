@@ -5,10 +5,10 @@ use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
-pub use skfhskjhf::Stack;
+pub use ds::Stack;
 // use ds::OOOOOOPS;
 // use ds::Stack;
-use xdoc::{Document, OrdMap, PIData};
+use xdoc::{Document, Encoding, OrdMap, PIData, Version};
 
 use crate::error::{self, Result};
 use crate::Node;
@@ -69,7 +69,8 @@ struct ParserState {
     // doc_state: DocState,
     current_char: char,
     tag_status: TagStatus,
-    stack: Stack<crate::Node>,
+    stack: Option<Stack<crate::Node>>,
+    document: Document,
 }
 
 pub fn parse_str(s: &str) -> Result<Document> {
@@ -78,7 +79,8 @@ pub fn parse_str(s: &str) -> Result<Document> {
         // doc_state: DocState::BeforeFirstTag,
         current_char: '\0',
         tag_status: OutsideTag,
-        stack: Stack::new(),
+        stack: None,
+        document: Document::default(),
     };
 
     let mut iter = s.chars();
@@ -131,7 +133,51 @@ fn process_char(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
                 if advance_parser(iter, state) {
                     let result = parse_pi(iter, state);
                     match result {
-                        Ok(pi_data) => { /*TODO use pi_data*/ }
+                        Ok(pi_data) => {
+                            if let Some(stack) = &mut state.stack {
+                                if let Some(parent) = stack.peek_mut() {
+                                    match parent {
+                                        Node::Element(elem) => { elem.nodes.push(Node::ProcessingInstruction(pi_data)) }
+                                        _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
+                                    }
+                                }
+                            } else {
+                                // state.stack is None, which means we have not yet encountered the root.
+                                // currently we will only support the xml declaration before root.
+                                // TODO - support other PI's, comments and DOCTYPEs before reaching root.
+                                if pi_data.target != "xml".to_string() {
+                                    return Err(error::Error::Bug { message: "TODO - better message".to_string() });
+                                }
+                                if pi_data.instructions.map().len() > 2 {
+                                    return Err(error::Error::Bug { message: "TODO - better message".to_string() });
+                                }
+                                if let Some(val) = pi_data.instructions.map().get("version") {
+                                    // TODO fix type issues with using Strings
+                                    let one = "1.0".to_string();
+                                    let dot = "1.1".to_string();
+                                    match val {
+                                        one => {
+                                            state.document.declaration.version = Version::One;
+                                        }
+                                        dot => {
+                                            state.document.declaration.version = Version::OneDotOne;
+                                        }
+                                        _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
+                                    }
+                                }
+                                if let Some(val) = pi_data.instructions.map().get("encoding") {
+                                    // TODO fix type issues with using Strings
+                                    let eight = "UTF-8".to_string();
+                                    // let dot = "1.1".to_string();
+                                    match val {
+                                        eight => {
+                                            state.document.declaration.encoding = Encoding::Utf8;
+                                        }
+                                        _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
+                                    }
+                                }
+                            }
+                        }
                         Err(e) => { /* TODO return the error*/ }
                     }
                 } else {

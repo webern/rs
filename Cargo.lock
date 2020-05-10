@@ -104,6 +104,7 @@ dependencies = [
  "cargo-readme",
  "env_logger",
  "log",
+ "skfhskjhf",
  "snafu",
  "test-dir",
  "xdoc",
@@ -312,6 +313,10 @@ checksum = "625fb0da2b006092b426a94acc1611bec52f2ec27bb27b266a9f93c29ee38eda"
 dependencies = [
  "serde",
 ]
+
+[[package]]
+name = "skfhskjhf"
+version = "0.0.0"
 
 [[package]]
 name = "snafu"

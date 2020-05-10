@@ -5,10 +5,13 @@ use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
+pub use skfhskjhf::Stack;
+// use ds::OOOOOOPS;
+// use ds::Stack;
 use xdoc::{Document, OrdMap, PIData};
 
 use crate::error::{self, Result};
-// use crate::parser::is_name_start_char;
+use crate::Node;
 use crate::parser::TagStatus::OutsideTag;
 
 // Comparison traits: Eq, PartialEq, Ord, PartialOrd.
@@ -38,6 +41,7 @@ pub struct Position {
 
 impl Default for Position {
     fn default() -> Self {
+        // let _x = ds::OOOOOOPS::<u8>::new();
         // These are the magic values needed to make the Position values 1-based.
         Position {
             line: 1,
@@ -59,12 +63,13 @@ impl Position {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash, Default)]
+#[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
 struct ParserState {
     position: Position,
     // doc_state: DocState,
     current_char: char,
     tag_status: TagStatus,
+    stack: Stack<crate::Node>,
 }
 
 pub fn parse_str(s: &str) -> Result<Document> {
@@ -73,6 +78,7 @@ pub fn parse_str(s: &str) -> Result<Document> {
         // doc_state: DocState::BeforeFirstTag,
         current_char: '\0',
         tag_status: OutsideTag,
+        stack: Stack::new(),
     };
 
     let mut iter = s.chars();

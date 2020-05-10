@@ -74,6 +74,11 @@ fn xml_file_list() -> Vec<PathBuf> {
         }
 
         let p = entry.path();
+        let filename = entry.file_name();
+        let filename = filename.to_string_lossy().to_string();
+        if filename.starts_with("disabled.") {
+            continue;
+        }
         let ext = ext(&p);
         if ext.as_str() == "xml" {
             result.push(path);

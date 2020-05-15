@@ -90,7 +90,7 @@ pub fn parse_str(s: &str) -> Result<Document> {
         trace!("{:?}", state);
     }
 
-    Ok(Document::new())
+    Ok(state.document)
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]

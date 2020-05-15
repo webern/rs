@@ -152,25 +152,19 @@ fn process_char(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
                                     return Err(error::Error::Bug { message: "TODO - better message".to_string() });
                                 }
                                 if let Some(val) = pi_data.instructions.map().get("version") {
-                                    // TODO fix type issues with using Strings
-                                    let one = "1.0".to_string();
-                                    let dot = "1.1".to_string();
-                                    match val {
-                                        one => {
+                                    match val.as_str() {
+                                        "1.0" => {
                                             state.document.declaration.version = Version::One;
                                         }
-                                        dot => {
+                                        "1.1" => {
                                             state.document.declaration.version = Version::OneDotOne;
                                         }
                                         _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
                                     }
                                 }
                                 if let Some(val) = pi_data.instructions.map().get("encoding") {
-                                    // TODO fix type issues with using Strings
-                                    let eight = "UTF-8".to_string();
-                                    // let dot = "1.1".to_string();
-                                    match val {
-                                        eight => {
+                                    match val.as_str() {
+                                        "UTF-8" => {
                                             state.document.declaration.encoding = Encoding::Utf8;
                                         }
                                         _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }

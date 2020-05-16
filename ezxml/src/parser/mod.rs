@@ -15,8 +15,8 @@ use crate::parser::element::parse_element;
 use crate::parser::pi::parse_pi;
 
 mod chars;
-mod pi;
 mod element;
+mod pi;
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 pub struct Position {
@@ -76,7 +76,9 @@ impl<'a> Iter<'a> {
             },
         };
         if !i.advance() {
-            return Err(Error::Parse { position: Position::default() });
+            return Err(Error::Parse {
+                position: Position::default(),
+            });
         }
         Ok(i)
     }
@@ -103,16 +105,60 @@ impl<'a> Iter<'a> {
     }
 
     pub(crate) fn err(&self) -> Error {
-        Error::Parse { position: self.st.position.clone() }
+        Error::Parse {
+            position: self.st.position.clone(),
+        }
+    }
+
+    pub(crate) fn expect(&self, expected: char) -> Result<()> {
+        if self.st.c == expected {
+            Ok(())
+        } else {
+            Err(self.err())
+        }
+    }
+
+    pub(crate) fn is_name_start_char(&self) -> bool {
+        is_name_start_char(self.st.c)
+    }
+
+    pub(crate) fn is_name_char(&self) -> bool {
+        is_name_char(self.st.c)
+    }
+
+    pub(crate) fn is_after_name_char(&self) -> bool {
+        match self.st.c {
+            ' ' | '\t' | '=' | '/' | '>' => true,
+            _ => false
+        }
+    }
+
+    pub(crate) fn expect_name_start_char(&self) -> Result<()> {
+        if !self.is_name_start_char() {
+            Err(self.err())
+        } else {
+            Ok(())
+        }
+    }
+
+    pub(crate) fn expect_name_char(&self) -> Result<()> {
+        if !self.is_name_char() {
+            Err(self.err())
+        } else {
+            Ok(())
+        }
     }
 }
 
 pub fn parse_str(s: &str) -> Result<Document> {
     let mut iter = Iter::new(s)?;
     let mut document = Document::new();
-    while iter.advance() {
+    loop {
         parse_document(&mut iter, &mut document)?;
         trace!("{:?}", iter.st);
+        if !iter.advance() {
+            break;
+        }
     }
     Ok(document)
 }
@@ -151,10 +197,7 @@ impl Default for DocStatus {
     }
 }
 
-fn parse_document(
-    iter: &mut Iter,
-    document: &mut Document,
-) -> Result<()> {
+fn parse_document(iter: &mut Iter, document: &mut Document) -> Result<()> {
     loop {
         if iter.st.c.is_ascii_whitespace() {
             if !iter.advance() {
@@ -173,7 +216,6 @@ fn parse_document(
                 // supported. the xml declaration must either be the first thing in the document
                 // or else omitted.
                 state_must_be_before_declaration(iter)?;
-                iter.advance_or_die()?;
                 let pi_data = parse_pi(iter)?;
                 document.declaration = parse_declaration(&pi_data)?;
                 iter.st.doc_status = DocStatus::AfterDeclaration;
@@ -260,28 +302,18 @@ fn no_comments() -> Result<()> {
 }
 
 fn parse_name(iter: &mut Iter) -> Result<String> {
+    iter.expect_name_start_char()?;
     let mut name = String::default();
-    if !is_name_start_char(iter.st.c) {
-        return Err(Error::Parse {
-            position: iter.st.position,
-        });
-    }
     name.push(iter.st.c);
+    iter.advance_or_die();
     loop {
-        if iter.st.c.is_ascii_whitespace() {
-            return Ok(name);
+        if iter.is_after_name_char() {
+            break;
         }
-        if iter.st.c == '=' {
-            return Ok(name);
-        }
-        if !is_name_char(iter.st.c) {
-            return Err(Error::Parse {
-                position: iter.st.position,
-            });
-        }
+        iter.expect_name_char()?;
         name.push(iter.st.c);
         if !iter.advance() {
-            return Ok(name);
+            break;
         }
     }
     Ok(name)

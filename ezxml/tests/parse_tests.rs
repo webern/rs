@@ -23,7 +23,9 @@ fn good_syntax_difficult_nodes_test() {
     let info = xtest::load("difficult-nodes");
     let xml_str = info.read_xml_file();
     let parse_result = ezxml::parse_str(xml_str.as_str());
-    assert!(parse_result.is_ok());
+    if let Err(e) = parse_result {
+        panic!("expected parse_result to be Ok, got Err: {}", e);
+    }
 }
 
 #[test]
@@ -48,7 +50,9 @@ fn good_syntax_ezfile_test() {
     let info = xtest::load("ezfile");
     let xml_str = info.read_xml_file();
     let parse_result = ezxml::parse_str(xml_str.as_str());
-    assert!(parse_result.is_ok());
+    if let Err(e) = parse_result {
+        panic!("expected parse_result to be Ok, got Err: {}", e);
+    }
     let actual = parse_result.unwrap();
     let expected = &info.metadata.expected.unwrap();
     let equal = expected == &actual;

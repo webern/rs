@@ -42,19 +42,19 @@ pub struct Declaration {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
 pub struct Document {
     pub declaration: Declaration,
-    pub root: Node,
+    pub root: ElementData,
 }
 
 impl Default for Document {
     fn default() -> Self {
         Document {
             declaration: Declaration::default(),
-            root: Node::Element(ElementData {
+            root: ElementData {
                 namespace: None,
                 name: "root".to_string(),
                 attributes: Default::default(),
                 nodes: vec![],
-            }),
+            },
         }
     }
 }
@@ -149,14 +149,14 @@ impl Document {
         Document::default()
     }
 
-    pub fn from_root(root: Node) -> Self {
+    pub fn from_root(root: ElementData) -> Self {
         Document {
             declaration: Default::default(),
             root,
         }
     }
 
-    pub fn root(&self) -> &Node {
+    pub fn root(&self) -> &ElementData {
         &self.root
     }
 
@@ -213,12 +213,8 @@ impl Document {
             }
         }
 
-        if let Node::Element(element) = self.root() {
-            if let Err(e) = element.write(writer, opts, 0) {
-                return wrap!(e);
-            }
-        } else {
-            return raise!("the root is not a node of element type.");
+        if let Err(e) = self.root().write(writer, opts, 0) {
+            return wrap!(e);
         }
 
         Ok(())
@@ -346,7 +342,7 @@ mod tests {
                 version: Version::One,
                 encoding: Encoding::Utf8,
             },
-            root: Node::Element(cats_data),
+            root: cats_data,
         }
     }
 
@@ -371,7 +367,7 @@ mod tests {
     }
 
 
-    // TODO - feature flagging does not work for serde
+    // TODO - feature flagging is not working for serde
     #[test]
     #[cfg(feature = "serde")]
     fn write_ezfile_as_json() {

@@ -9,37 +9,35 @@
       "encoding": "utf8"
     },
     "root": {
-      "element": {
-        "namespace": null,
-        "name": "cats",
-        "attributes": {},
-        "nodes": [
-          {
-            "element": {
-              "namespace": null,
-              "name": "cat",
-              "attributes": {
-                "name": "bones"
-              },
-              "nodes": []
-            }
-          },
-          {
-            "element": {
-              "namespace": null,
-              "name": "cat",
-              "attributes": {
-                "name": "bishop"
-              },
-              "nodes": [
-                {
-                  "string": "punks"
-                }
-              ]
-            }
+      "namespace": null,
+      "name": "cats",
+      "attributes": {},
+      "nodes": [
+        {
+          "element": {
+            "namespace": null,
+            "name": "cat",
+            "attributes": {
+              "name": "bones"
+            },
+            "nodes": []
           }
-        ]
-      }
+        },
+        {
+          "element": {
+            "namespace": null,
+            "name": "cat",
+            "attributes": {
+              "name": "bishop"
+            },
+            "nodes": [
+              {
+                "string": "punks"
+              }
+            ]
+          }
+        }
+      ]
     }
   }
 }

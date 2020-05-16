@@ -135,7 +135,7 @@ fn parse_document(iter: &mut Chars, state: &mut ParserState, document: &mut Docu
             }
             '-' => no_comments()?,
             _ => {
-                document.root = Node::Element(parse_element(iter, state)?);
+                document.root = parse_element(iter, state)?;
             }
         }
 

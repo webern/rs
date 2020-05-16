@@ -169,9 +169,9 @@ fn parse_document(
         let next = peek_or_die(iter)?;
         match next {
             '?' => {
-// currently only one processing instruction is supported. no comments are
-// supported. the xml declaration must either be the first thing in the document
-// or else omitted.
+                // currently only one processing instruction is supported. no comments are
+                // supported. the xml declaration must either be the first thing in the document
+                // or else omitted.
                 state_must_be_before_declaration(iter)?;
                 iter.advance_or_die()?;
                 let pi_data = parse_pi(iter)?;

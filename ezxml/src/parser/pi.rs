@@ -93,9 +93,7 @@ fn take_processing_instruction_char(
     match processor.status {
         PIStatus::BeforeTarget => {
             if !is_name_start_char(iter.st.c) {
-                return Err(Error::Parse {
-                    position: iter.st.position,
-                });
+                return Err(iter.err());
             } else {
                 processor.pi_data.target.push(iter.st.c);
                 processor.status = PIStatus::InsideTarget;
@@ -105,9 +103,7 @@ fn take_processing_instruction_char(
             if iter.st.c.is_ascii_whitespace() {
                 processor.status = PIStatus::AfterTarget;
             } else if !is_name_char(iter.st.c) {
-                return Err(Error::Parse {
-                    position: iter.st.position,
-                });
+                return Err(iter.err());
             } else {
                 processor.pi_data.target.push(iter.st.c);
             }
@@ -117,9 +113,7 @@ fn take_processing_instruction_char(
                 processor.key_buffer.push(iter.st.c);
                 processor.status = PIStatus::InsideKey;
             } else if !iter.st.c.is_ascii_whitespace() {
-                return Err(Error::Parse {
-                    position: iter.st.position,
-                });
+                return Err(iter.err());
             }
         }
         PIStatus::InsideKey => {
@@ -131,18 +125,14 @@ fn take_processing_instruction_char(
             } else if iter.st.c.is_ascii_whitespace() {
                 processor.status = PIStatus::AfterKey;
             } else {
-                return Err(Error::Parse {
-                    position: iter.st.position,
-                });
+                return Err(iter.err());
             }
         }
         PIStatus::AfterKey => {
             if iter.st.c == '=' {
                 processor.status = PIStatus::Equals;
             } else if !iter.st.c.is_ascii_whitespace() {
-                return Err(Error::Parse {
-                    position: iter.st.position,
-                });
+                return Err(iter.err());
             }
         }
         PIStatus::Equals | PIStatus::AfterEquals => {
@@ -151,9 +141,7 @@ fn take_processing_instruction_char(
             } else if iter.st.c.is_ascii_whitespace() {
                 processor.status = PIStatus::AfterEquals;
             } else {
-                return Err(Error::Parse {
-                    position: iter.st.position,
-                });
+                return Err(iter.err());
             }
         }
         PIStatus::ValOpenQuote | PIStatus::InsideVal => {
@@ -172,9 +160,7 @@ fn take_processing_instruction_char(
             } else if iter.st.c == '?' {
                 processor.status = PIStatus::QuestionMark;
             } else {
-                return Err(Error::Parse {
-                    position: iter.st.position,
-                });
+                return Err(iter.err());
             }
         }
         PIStatus::AfterVal => {
@@ -186,18 +172,14 @@ fn take_processing_instruction_char(
                 processor.key_buffer.push(iter.st.c);
                 processor.status = PIStatus::InsideKey;
             } else {
-                return Err(Error::Parse {
-                    position: iter.st.position,
-                });
+                return Err(iter.err());
             }
         }
         PIStatus::QuestionMark => {
             if iter.st.c == '>' {
                 processor.status = PIStatus::Close;
             } else {
-                return Err(Error::Parse {
-                    position: iter.st.position,
-                });
+                return Err(iter.err());
             }
         }
         PIStatus::Close => { /* done */ }

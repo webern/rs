@@ -1,36 +1,15 @@
 extern crate env_logger;
 
-use std::io::prelude::*;
 use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace, ResultExt};
 
 pub use ds::Stack;
-// use ds::OOOOOOPS;
-// use ds::Stack;
-use xdoc::{Document, Encoding, OrdMap, PIData, Version};
+use xdoc::{Declaration, Document, ElementData, Encoding, OrdMap, PIData, Version};
 
 use crate::error::{self, Result};
 use crate::Node;
 use crate::parser::TagStatus::OutsideTag;
-
-// Comparison traits: Eq, PartialEq, Ord, PartialOrd.
-// Clone, to create T from &T via a copy.
-// Copy, to give a type 'copy semantics' instead of 'move semantics'.
-// Hash, to compute a hash from &T.
-// Default, to create an empty instance of a data type.
-// Debug, to format a value using the {:?} formatter.
-// #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
-
-const _BUFF_SIZE: usize = 1024;
-
-pub fn _parse<R: BufRead>(r: &mut R) -> error::Result<Document> {
-    let mut s = String::new();
-    let _ = r.read_to_string(&mut s).context(error::IoRead {
-        parse_location: error::ParseLocation { line: 0, column: 0 },
-    })?;
-    parse_str(&s)
-}
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 pub struct Position {
@@ -41,7 +20,6 @@ pub struct Position {
 
 impl Default for Position {
     fn default() -> Self {
-        // let _x = ds::OOOOOOPS::<u8>::new();
         // These are the magic values needed to make the Position values 1-based.
         Position {
             line: 1,
@@ -66,31 +44,30 @@ impl Position {
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
 struct ParserState {
     position: Position,
-    // doc_state: DocState,
     current_char: char,
+    doc_status: DocStatus,
     tag_status: TagStatus,
     stack: Option<Stack<crate::Node>>,
-    document: Document,
 }
 
 pub fn parse_str(s: &str) -> Result<Document> {
     let mut state = ParserState {
         position: Default::default(),
-        // doc_state: DocState::BeforeFirstTag,
         current_char: '\0',
+        doc_status: DocStatus::default(),
         tag_status: OutsideTag,
         stack: None,
-        document: Document::default(),
     };
 
     let mut iter = s.chars();
+    let mut document = Document::new();
     while advance_parser(&mut iter, &mut state) {
         let _state = format!("{:?}", state);
-        process_char(&mut iter, &mut state)?;
+        parse_document(&mut iter, &mut state, &mut document)?;
         trace!("{:?}", state);
     }
 
-    Ok(state.document)
+    Ok(document)
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
@@ -108,6 +85,21 @@ impl Default for TagStatus {
     }
 }
 
+#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
+enum DocStatus {
+    BeforeDeclaration,
+    AfterDeclaration,
+    BeforeRoot,
+    ProcessingRoot,
+    AfterRoot,
+}
+
+impl Default for DocStatus {
+    fn default() -> Self {
+        DocStatus::BeforeDeclaration
+    }
+}
+
 fn is_space_or_alpha(c: char) -> bool {
     c.is_alphabetic() || c.is_ascii_whitespace()
 }
@@ -116,107 +108,39 @@ fn is_pi_indicator(c: char) -> bool {
     c == '?'
 }
 
-fn process_char(iter: &mut Chars, state: &mut ParserState) -> Result<()> {
-    let _state_str = format!("{:?}", state);
-    match state.tag_status {
-        TagStatus::TagOpen(pos) => {
-            if state.current_char != '/'
-                && !is_space_or_alpha(state.current_char)
-                && !is_pi_indicator(state.current_char)
-            {
-                return Err(error::Error::Parse {
-                    position: state.position,
-                    backtrace: Backtrace::generate(),
-                });
-            } else if is_pi_indicator(state.current_char) {
-                state.tag_status = TagStatus::InsideProcessingInstruction(pos);
-                if advance_parser(iter, state) {
-                    let result = parse_pi(iter, state);
-                    match result {
-                        Ok(pi_data) => {
-                            if let Some(stack) = &mut state.stack {
-                                if let Some(parent) = stack.peek_mut() {
-                                    match parent {
-                                        Node::Element(elem) => { elem.nodes.push(Node::ProcessingInstruction(pi_data)) }
-                                        _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
-                                    }
-                                }
-                            } else {
-                                // state.stack is None, which means we have not yet encountered the root.
-                                // currently we will only support the xml declaration before root.
-                                // TODO - support other PI's, comments and DOCTYPEs before reaching root.
-                                if pi_data.target != "xml".to_string() {
-                                    return Err(error::Error::Bug { message: "TODO - better message".to_string() });
-                                }
-                                if pi_data.instructions.map().len() > 2 {
-                                    return Err(error::Error::Bug { message: "TODO - better message".to_string() });
-                                }
-                                if let Some(val) = pi_data.instructions.map().get("version") {
-                                    match val.as_str() {
-                                        "1.0" => {
-                                            state.document.declaration.version = Version::One;
-                                        }
-                                        "1.1" => {
-                                            state.document.declaration.version = Version::OneDotOne;
-                                        }
-                                        _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
-                                    }
-                                }
-                                if let Some(val) = pi_data.instructions.map().get("encoding") {
-                                    match val.as_str() {
-                                        "UTF-8" => {
-                                            state.document.declaration.encoding = Encoding::Utf8;
-                                        }
-                                        _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
-                                    }
-                                }
-                            }
-                        }
-                        Err(e) => { /* TODO return the error*/ }
-                    }
-                } else {
-                    return Err(error::Error::Parse {
-                        position: state.position,
-                        backtrace: Backtrace::generate(),
-                    });
-                }
-            } else {
-                state.tag_status = TagStatus::InsideTag(pos)
+fn parse_document(iter: &mut Chars, state: &mut ParserState, document: &mut Document) -> Result<()> {
+    loop {
+        if state.current_char.is_ascii_whitespace() {
+            if !advance_parser(iter, state) {
+                break;
+            }
+            continue;
+        } else if state.current_char != '<' {
+            return Err(error::Error::Parse {
+                position: state.position,
+                backtrace: Backtrace::generate(),
+            });
+        }
+        let next = peek_or_die(iter)?;
+        match next {
+            '?' => {
+                // currently only one processing instruction is supported. no comments are
+                // supported. the xml declaration must either be the first thing in the document
+                // or else omitted.
+                state_must_be_before_declaration(state)?;
+                advance_parser_or_die(iter, state)?;
+                let pi_data = parse_pi(iter, state)?;
+                document.declaration = parse_declaration(&pi_data)?;
+                state.doc_status = DocStatus::AfterDeclaration;
+            }
+            '-' => no_comments()?,
+            _ => {
+                document.root = Node::Element(parse_element(iter, state)?);
             }
         }
-        TagStatus::InsideTag(pos) => {
-            if state.current_char == '>' {
-                state.tag_status = TagStatus::TagClose(pos, state.position.absolute)
-            } else if state.current_char == '<' {
-                return Err(error::Error::Parse {
-                    position: state.position,
-                    backtrace: Backtrace::generate(),
-                });
-            }
-        }
-        TagStatus::InsideProcessingInstruction(pos) => {}
-        TagStatus::TagClose(_start, _end) => {
-            if state.current_char == '<' {
-                state.tag_status = TagStatus::TagOpen(state.position.absolute);
-            } else if state.current_char == '>' {
-                return Err(error::Error::Parse {
-                    position: state.position,
-                    backtrace: Backtrace::generate(),
-                });
-            } else {
-                state.tag_status = TagStatus::OutsideTag;
-            }
-            // TODO pop the start and stop locations over to a tag parser?
-        }
-        OutsideTag => {
-            if state.current_char == '<' {
-                state.tag_status = TagStatus::TagOpen(state.position.absolute);
-            } else if state.current_char == '>' {
-                return Err(error::Error::Parse {
-                    position: state.position,
-                    backtrace: Backtrace::generate(),
-                });
-            }
+
+        if !advance_parser(iter, state) {
+            break;
         }
     }
     Ok(())
@@ -282,11 +206,6 @@ fn parse_pi(iter: &mut Chars, state: &mut ParserState) -> Result<PIData> {
         if processor.status == PIStatus::Close {
             break;
         }
-        // advance state here?
-
-        // if processor.done {
-        //     return Ok(());
-        // }
 
         if !advance_parser(iter, state) {
             return Err(error::Error::Parse {
@@ -465,11 +384,6 @@ fn take_processing_instruction_char(iter: &mut Chars, state: &mut ParserState, p
     Ok(())
 }
 
-// is there really no built-in function?
-// fn is_space(c: char) -> bool {
-//     c == ' ' || c == '\t' || c == '\n'
-// }
-
 fn advance_parser(iter: &mut Chars<'_>, state: &mut ParserState) -> bool {
     let option_char = iter.next();
     match option_char {
@@ -482,10 +396,16 @@ fn advance_parser(iter: &mut Chars<'_>, state: &mut ParserState) -> bool {
     }
 }
 
-// const Z: u32 = 0xEFFFF;
-// // const X: char = char::from(Z);
-// const U_EFFFF: char = '󯿿';
-
+fn advance_parser_or_die(iter: &mut Chars<'_>, state: &mut ParserState) -> Result<()> {
+    if advance_parser(iter, state) {
+        Ok(())
+    } else {
+        Err(error::Error::Parse {
+            position: state.position,
+            backtrace: Backtrace::generate(),
+        })
+    }
+}
 
 fn is_name_start_char(c: char) -> bool {
     // TODO oops make sure its the same as 1.1 https://www.w3.org/TR/2006/REC-xml11-20060816/
@@ -531,6 +451,69 @@ fn is_name_char(c: char) -> bool {
         '.' => true,
         _ => false,
     }
+}
+
+
+fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
+    let mut declaration = Declaration::default();
+    if pi_data.target != "xml".to_string() {
+        return Err(error::Error::Bug { message: "TODO - better message".to_string() });
+    }
+    if pi_data.instructions.map().len() > 2 {
+        return Err(error::Error::Bug { message: "TODO - better message".to_string() });
+    }
+    if let Some(val) = pi_data.instructions.map().get("version") {
+        match val.as_str() {
+            "1.0" => {
+                declaration.version = Version::One;
+            }
+            "1.1" => {
+                declaration.version = Version::OneDotOne;
+            }
+            _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
+        }
+    }
+    if let Some(val) = pi_data.instructions.map().get("encoding") {
+        match val.as_str() {
+            "UTF-8" => {
+                declaration.encoding = Encoding::Utf8;
+            }
+            _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
+        }
+    }
+    Ok(declaration)
+}
+
+fn state_must_be_before_declaration(state: &ParserState) -> Result<()> {
+    if state.doc_status != DocStatus::BeforeDeclaration {
+        Err(error::Error::Bug { message: "TODO - better message".to_string() })
+    } else {
+        Ok(())
+    }
+}
+
+fn peek_or_die(iter: &mut Chars) -> Result<char> {
+    let mut peekable = iter.peekable();
+    let opt = peekable.peek();
+    match opt {
+        Some(c) => Ok(*c),
+        None => Err(error::Error::Bug { message: "TODO - better message".to_string() })
+    }
+}
+
+fn no_comments() -> Result<()> {
+    Err(error::Error::Bug { message: "comments are not supported".to_string() })
+}
+
+fn parse_element(iter: &mut Chars, state: &mut ParserState) -> Result<ElementData> {
+    // TODO - implement
+    while advance_parser(iter, state) {}
+    Ok(ElementData {
+        namespace: Some("foo".to_owned()),
+        name: "bar".to_string(),
+        attributes: Default::default(),
+        nodes: vec![],
+    })
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

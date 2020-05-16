@@ -5,7 +5,7 @@ use snafu::{Backtrace, GenerateBacktrace};
 use xdoc::PIData;
 
 use crate::error::{Error, Result};
-use crate::parser::{advance_parser, Iter, XXXParserState};
+use crate::parser::{Iter, XXXParserState};
 
 use super::chars::{is_name_char, is_name_start_char};
 
@@ -81,7 +81,7 @@ pub(crate) fn parse_pi(iter: &mut Iter) -> Result<PIData> {
             break;
         }
 
-        if !advance_parser(iter) {
+        if !iter.advance() {
             return Err(Error::Parse {
                 position: iter.st.position,
                 backtrace: Backtrace::generate(),

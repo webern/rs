@@ -107,7 +107,7 @@ pub fn parse_str(s: &str) -> Result<Document> {
     // let mut iter = s.chars();
     let mut iter = Iter::new(s)?;
     let mut document = Document::new();
-    while advance_parser(&mut iter) {
+    while iter.advance() {
         parse_document(&mut iter, &mut document)?;
         trace!("{:?}", iter.st);
     }
@@ -155,7 +155,7 @@ fn parse_document(
 ) -> Result<()> {
     loop {
         if iter.st.c.is_ascii_whitespace() {
-            if !advance_parser(iter) {
+            if !iter.advance() {
                 break;
             }
             continue;
@@ -183,28 +183,15 @@ fn parse_document(
             }
         }
 
-        if !advance_parser(iter) {
+        if !iter.advance() {
             break;
         }
     }
     Ok(())
 }
 
-pub(crate) fn advance_parser(iter: &mut Iter<'_>) -> bool {
-    // let option_char = iter.next();
-    // match option_char {
-    //     Some(c) => {
-    //         iter.st.c = c;
-    //         iter.st.position.increment(iter.st.c);
-    //         true
-    //     }
-    //     None => false,
-    // }
-    iter.advance()
-}
-
 pub(crate) fn advance_parser_or_die(iter: &mut Iter<'_>) -> Result<()> {
-    if advance_parser(iter) {
+    if iter.advance() {
         Ok(())
     } else {
         Err(error::Error::Parse {
@@ -305,7 +292,7 @@ fn parse_name(iter: &mut Iter) -> Result<String> {
             });
         }
         name.push(iter.st.c);
-        if !advance_parser(iter) {
+        if !iter.advance() {
             return Ok(name);
         }
     }

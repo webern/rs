@@ -49,7 +49,7 @@ impl Position {
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
-pub(crate) struct XXXParserState {
+pub(crate) struct ParserState {
     pub(crate) position: Position,
     pub(crate) c: char,
     pub(crate) doc_status: DocStatus,
@@ -59,7 +59,7 @@ pub(crate) struct XXXParserState {
 
 pub(crate) struct Iter<'a> {
     pub(crate) it: Peekable<Chars<'a>>,
-    pub(crate) st: XXXParserState,
+    pub(crate) st: ParserState,
 }
 
 impl<'a> Iter<'a> {
@@ -67,7 +67,7 @@ impl<'a> Iter<'a> {
     fn new(s: &'a str) -> Result<Self> {
         let mut i = Iter {
             it: s.chars().peekable(),
-            st: XXXParserState {
+            st: ParserState {
                 position: Default::default(),
                 c: 'x',
                 doc_status: Default::default(),
@@ -96,22 +96,12 @@ impl<'a> Iter<'a> {
 }
 
 pub fn parse_str(s: &str) -> Result<Document> {
-    // let mut state = XXXParserState {
-    //     position: Default::default(),
-    //     c: '\0',
-    //     doc_status: DocStatus::default(),
-    //     tag_status: TagStatus::OutsideTag,
-    //     stack: None,
-    // };
-    //
-    // let mut iter = s.chars();
     let mut iter = Iter::new(s)?;
     let mut document = Document::new();
     while iter.advance() {
         parse_document(&mut iter, &mut document)?;
         trace!("{:?}", iter.st);
     }
-
     Ok(document)
 }
 

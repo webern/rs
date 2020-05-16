@@ -5,7 +5,7 @@ use snafu::{Backtrace, GenerateBacktrace};
 use xdoc::ElementData;
 
 use crate::error::{Error, Result};
-use crate::parser::{advance_parser_or_die, Iter, parse_name, XXXParserState};
+use crate::parser::{advance_parser_or_die, Iter, parse_name, ParserState};
 use crate::parser::chars::is_name_start_char;
 
 pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {

@@ -5,13 +5,6 @@
 #[macro_use]
 extern crate serde;
 
-use std::fs;
-use std::fs::{File, read_to_string};
-use std::io::BufReader;
-use std::path::PathBuf;
-
-use serde::{Deserialize, Serialize};
-
 pub use {io::load, io::load_all};
 pub use metadata::Metadata;
 pub use xml_file::{Syntax, XmlFile};

@@ -31,7 +31,7 @@ impl<T> Stack<T>
         if self.0.is_empty() {
             return None;
         }
-        self.0.get(self.0.len() - 1)
+        self.0.last()
     }
 
     pub fn peek_mut(&mut self) -> Option<&mut T> {

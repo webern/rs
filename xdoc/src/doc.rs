@@ -1,9 +1,8 @@
 use std::default::Default;
 use std::io::{Cursor, Write};
-use std::str::Utf8Error;
 
 use crate::{ElementData, Node};
-use crate::error::{Result, XErr};
+use crate::error::Result;
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
@@ -243,7 +242,7 @@ impl ToString for Document {
         let opts = WriteOpts::default();
         match self.to_string_opts(&opts) {
             Ok(s) => { s }
-            Err(e) => { "<error/>".to_string() }
+            Err(_) => { "<error/>".to_string() }
         }
     }
 }

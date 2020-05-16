@@ -50,7 +50,7 @@ impl PIProcessor {
             // TODO - better error
             return Err(Error::Bug { message: "Empty key - this is a bug and should have been detected sooner.".to_string() });
         }
-        if let Some(_) = self.pi_data.instructions.mut_map().insert(self.key_buffer.clone(), self.value_buffer.clone()) {
+        if self.pi_data.instructions.mut_map().insert(self.key_buffer.clone(), self.value_buffer.clone()).is_some() {
             // TODO - better error
             return Err(Error::Bug { message: "Duplicate key".to_string() });
         }
@@ -81,7 +81,7 @@ pub(crate) fn parse_pi(iter: &mut Chars, state: &mut ParserState) -> Result<PIDa
     Ok(processor.pi_data)
 }
 
-fn take_processing_instruction_char(iter: &mut Chars, state: &mut ParserState, processor: &mut PIProcessor) -> Result<()> {
+fn take_processing_instruction_char(_iter: &mut Chars, state: &mut ParserState, processor: &mut PIProcessor) -> Result<()> {
     let ch = state.current_char;
     println!("{}", ch);
     match processor.status {
@@ -158,12 +158,7 @@ fn take_processing_instruction_char(iter: &mut Chars, state: &mut ParserState, p
         }
         PIStatus::ValOpenQuote | PIStatus::InsideVal => {
             if state.current_char == '"' {
-                if let Err(_) = processor.take_buffers() {
-                    return Err(Error::Parse {
-                        position: state.position,
-                        backtrace: Backtrace::generate(),
-                    });
-                }
+                processor.take_buffers()?;
                 processor.status = PIStatus::ValCloseQuote;
             } else {
                 // TODO - handle escape sequences

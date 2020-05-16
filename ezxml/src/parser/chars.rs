@@ -76,12 +76,3 @@ pub(crate) fn is_name_char(c: char) -> bool {
         _ => false,
     }
 }
-
-pub(crate) fn is_pi_indicator(c: char) -> bool {
-    c == '?'
-}
-
-pub(crate) fn is_space_or_alpha(c: char) -> bool {
-    c.is_alphabetic() || c.is_ascii_whitespace()
-}
-

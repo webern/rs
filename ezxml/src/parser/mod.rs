@@ -2,10 +2,10 @@ extern crate env_logger;
 
 use std::str::Chars;
 
-use snafu::{Backtrace, GenerateBacktrace, ResultExt};
+use snafu::{Backtrace, GenerateBacktrace};
 
 pub use ds::Stack;
-use xdoc::{Declaration, Document, ElementData, Encoding, OrdMap, PIData, Version};
+use xdoc::{Declaration, Document, ElementData, Encoding, PIData, Version};
 
 use crate::error::{self, Result};
 use crate::Node;
@@ -73,6 +73,8 @@ pub fn parse_str(s: &str) -> Result<Document> {
     Ok(document)
 }
 
+// TODO - disallow dead code
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 pub(crate) enum TagStatus {
     TagOpen(u64),
@@ -88,6 +90,8 @@ impl Default for TagStatus {
     }
 }
 
+// TODO - disallow dead code
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 pub(crate) enum DocStatus {
     BeforeDeclaration,
@@ -168,7 +172,7 @@ pub(crate) fn advance_parser_or_die(iter: &mut Chars<'_>, state: &mut ParserStat
 
 fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
     let mut declaration = Declaration::default();
-    if pi_data.target != "xml".to_string() {
+    if pi_data.target != "xml" {
         return Err(error::Error::Bug { message: "TODO - better message".to_string() });
     }
     if pi_data.instructions.map().len() > 2 {

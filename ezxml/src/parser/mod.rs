@@ -94,6 +94,14 @@ impl<'a> Iter<'a> {
         }
     }
 
+    pub(crate) fn advance_or_die(&mut self) -> Result<()> {
+        if self.advance() {
+            Ok(())
+        } else {
+            Err(self.err())
+        }
+    }
+
     pub(crate) fn err(&self) -> Error {
         Error::Parse { position: self.st.position.clone() }
     }
@@ -165,7 +173,7 @@ fn parse_document(
 // supported. the xml declaration must either be the first thing in the document
 // or else omitted.
                 state_must_be_before_declaration(iter)?;
-                advance_parser_or_die(iter)?;
+                iter.advance_or_die()?;
                 let pi_data = parse_pi(iter)?;
                 document.declaration = parse_declaration(&pi_data)?;
                 iter.st.doc_status = DocStatus::AfterDeclaration;
@@ -181,16 +189,6 @@ fn parse_document(
         }
     }
     Ok(())
-}
-
-pub(crate) fn advance_parser_or_die(iter: &mut Iter<'_>) -> Result<()> {
-    if iter.advance() {
-        Ok(())
-    } else {
-        Err(Error::Parse {
-            position: iter.st.position,
-        })
-    }
 }
 
 fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {

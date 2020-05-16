@@ -74,18 +74,11 @@ impl PIProcessor {
 pub(crate) fn parse_pi(iter: &mut Iter) -> Result<PIData> {
     let mut processor = PIProcessor::new();
     loop {
-        if let Err(e) = take_processing_instruction_char(iter, &mut processor) {
-            return Err(e);
-        }
+        take_processing_instruction_char(iter, &mut processor)?;
         if processor.status == PIStatus::Close {
             break;
         }
-
-        if !iter.advance() {
-            return Err(Error::Parse {
-                position: iter.st.position,
-            });
-        }
+        iter.advance_or_die();
     }
 
     Ok(processor.pi_data)

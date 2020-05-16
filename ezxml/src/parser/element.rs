@@ -5,7 +5,7 @@ use snafu::{Backtrace, GenerateBacktrace};
 use xdoc::ElementData;
 
 use crate::error::{Error, Result};
-use crate::parser::{advance_parser_or_die, Iter, parse_name, ParserState};
+use crate::parser::{Iter, parse_name, ParserState};
 use crate::parser::chars::is_name_start_char;
 
 pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {
@@ -17,14 +17,14 @@ pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {
     }
 
     // advance one character to the first position inside the element tag
-    advance_parser_or_die(iter)?;
+    iter.advance_or_die()?;
 
     // ignore whitespace before the element name
     loop {
         if !iter.st.c.is_ascii_whitespace() {
             break;
         }
-        advance_parser_or_die(iter)?;
+        iter.advance_or_die()?;
     }
 
     let name = parse_name(iter)?;

@@ -8,11 +8,14 @@ pub use ds::Stack;
 use xdoc::{Declaration, Document, ElementData, Encoding, PIData, Version};
 
 use crate::error::{self, Result};
-use crate::parser::pi::parse_pi;
 use crate::Node;
+use crate::parser::chars::{is_name_char, is_name_start_char};
+use crate::parser::element::parse_element;
+use crate::parser::pi::parse_pi;
 
 mod chars;
 mod pi;
+mod element;
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 pub struct Position {
@@ -47,7 +50,7 @@ impl Position {
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
 pub(crate) struct ParserState {
     pub(crate) position: Position,
-    pub(crate) current_char: char,
+    pub(crate) c: char,
     pub(crate) doc_status: DocStatus,
     pub(crate) tag_status: TagStatus,
     pub(crate) stack: Option<Stack<crate::Node>>,
@@ -56,7 +59,7 @@ pub(crate) struct ParserState {
 pub fn parse_str(s: &str) -> Result<Document> {
     let mut state = ParserState {
         position: Default::default(),
-        current_char: '\0',
+        c: '\0',
         doc_status: DocStatus::default(),
         tag_status: TagStatus::OutsideTag,
         stack: None,
@@ -113,12 +116,12 @@ fn parse_document(
     document: &mut Document,
 ) -> Result<()> {
     loop {
-        if state.current_char.is_ascii_whitespace() {
+        if state.c.is_ascii_whitespace() {
             if !advance_parser(iter, state) {
                 break;
             }
             continue;
-        } else if state.current_char != '<' {
+        } else if state.c != '<' {
             return Err(error::Error::Parse {
                 position: state.position,
                 backtrace: Backtrace::generate(),
@@ -153,8 +156,8 @@ pub(crate) fn advance_parser(iter: &mut Chars<'_>, state: &mut ParserState) -> b
     let option_char = iter.next();
     match option_char {
         Some(c) => {
-            state.current_char = c;
-            state.position.increment(state.current_char);
+            state.c = c;
+            state.position.increment(state.c);
             true
         }
         None => false,
@@ -225,8 +228,7 @@ fn state_must_be_before_declaration(state: &ParserState) -> Result<()> {
 }
 
 pub(crate) fn peek_or_die(iter: &mut Chars) -> Result<char> {
-    let mut peekable = iter.peekable();
-    let opt = peekable.peek();
+    let opt = iter.peek();
     match opt {
         Some(c) => Ok(*c),
         None => Err(error::Error::Bug {
@@ -241,15 +243,34 @@ fn no_comments() -> Result<()> {
     })
 }
 
-fn parse_element(iter: &mut Chars, state: &mut ParserState) -> Result<ElementData> {
-    // TODO - implement
-    while advance_parser(iter, state) {}
-    Ok(ElementData {
-        namespace: Some("foo".to_owned()),
-        name: "bar".to_string(),
-        attributes: Default::default(),
-        nodes: vec![],
-    })
+fn parse_name(iter: &mut Chars, state: &mut ParserState) -> Result<String> {
+    let mut name = String::default();
+    if !is_name_start_char(state.c) {
+        return Err(error::Error::Parse {
+            position: state.position,
+            backtrace: Backtrace::generate(),
+        });
+    }
+    name.push(state.c);
+    loop {
+        if state.c.is_ascii_whitespace() {
+            return Ok(name);
+        }
+        if state.c == '=' {
+            return Ok(name);
+        }
+        if !is_name_char(state.c) {
+            return Err(error::Error::Parse {
+                position: state.position,
+                backtrace: Backtrace::generate(),
+            });
+        }
+        name.push(state.c);
+        if !advance_parser(iter, state) {
+            return Ok(name);
+        }
+    }
+    Ok(name)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

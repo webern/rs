@@ -23,7 +23,6 @@ pub enum Error {
     #[snafu(display("Failure while parsing: {:?}", position))]
     Parse {
         position: Position,
-        backtrace: Backtrace,
     },
     IoRead {
         parse_location: ParseLocation,

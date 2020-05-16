@@ -1,5 +1,6 @@
 extern crate env_logger;
 
+use std::iter::Peekable;
 use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace};
@@ -7,12 +8,15 @@ use snafu::{Backtrace, GenerateBacktrace};
 pub use ds::Stack;
 use xdoc::{Declaration, Document, ElementData, Encoding, PIData, Version};
 
-use crate::error::{self, Result};
+use crate::error::{Error, Result};
 use crate::Node;
+use crate::parser::chars::{is_name_char, is_name_start_char};
+use crate::parser::element::parse_element;
 use crate::parser::pi::parse_pi;
 
-mod pi;
 mod chars;
+mod pi;
+mod element;
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 pub struct Position {
@@ -47,29 +51,69 @@ impl Position {
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
 pub(crate) struct ParserState {
     pub(crate) position: Position,
-    pub(crate) current_char: char,
+    pub(crate) c: char,
     pub(crate) doc_status: DocStatus,
     pub(crate) tag_status: TagStatus,
     pub(crate) stack: Option<Stack<crate::Node>>,
 }
 
-pub fn parse_str(s: &str) -> Result<Document> {
-    let mut state = ParserState {
-        position: Default::default(),
-        current_char: '\0',
-        doc_status: DocStatus::default(),
-        tag_status: TagStatus::OutsideTag,
-        stack: None,
-    };
+pub(crate) struct Iter<'a> {
+    pub(crate) it: Peekable<Chars<'a>>,
+    pub(crate) st: ParserState,
+}
 
-    let mut iter = s.chars();
-    let mut document = Document::new();
-    while advance_parser(&mut iter, &mut state) {
-        let _state = format!("{:?}", state);
-        parse_document(&mut iter, &mut state, &mut document)?;
-        trace!("{:?}", state);
+impl<'a> Iter<'a> {
+    /// Returns an `Iter` primed with the first character, otherwise returns an error.
+    fn new(s: &'a str) -> Result<Self> {
+        let mut i = Iter {
+            it: s.chars().peekable(),
+            st: ParserState {
+                position: Default::default(),
+                c: 'x',
+                doc_status: Default::default(),
+                tag_status: Default::default(),
+                stack: None,
+            },
+        };
+        if !i.advance() {
+            return Err(Error::Parse { position: Position::default() });
+        }
+        Ok(i)
     }
 
+    /// Returns `false` if the iterator could not be advanced (end).
+    pub(crate) fn advance(&mut self) -> bool {
+        let option_char = self.it.next();
+        match option_char {
+            Some(c) => {
+                self.st.c = c;
+                self.st.position.increment(self.st.c);
+                true
+            }
+            None => false,
+        }
+    }
+
+    pub(crate) fn advance_or_die(&mut self) -> Result<()> {
+        if self.advance() {
+            Ok(())
+        } else {
+            Err(self.err())
+        }
+    }
+
+    pub(crate) fn err(&self) -> Error {
+        Error::Parse { position: self.st.position.clone() }
+    }
+}
+
+pub fn parse_str(s: &str) -> Result<Document> {
+    let mut iter = Iter::new(s)?;
+    let mut document = Document::new();
+    while iter.advance() {
+        parse_document(&mut iter, &mut document)?;
+        trace!("{:?}", iter.st);
+    }
     Ok(document)
 }
 
@@ -107,18 +151,19 @@ impl Default for DocStatus {
     }
 }
 
-
-fn parse_document(iter: &mut Chars, state: &mut ParserState, document: &mut Document) -> Result<()> {
+fn parse_document(
+    iter: &mut Iter,
+    document: &mut Document,
+) -> Result<()> {
     loop {
-        if state.current_char.is_ascii_whitespace() {
-            if !advance_parser(iter, state) {
+        if iter.st.c.is_ascii_whitespace() {
+            if !iter.advance() {
                 break;
             }
             continue;
-        } else if state.current_char != '<' {
-            return Err(error::Error::Parse {
-                position: state.position,
-                backtrace: Backtrace::generate(),
+        } else if iter.st.c != '<' {
+            return Err(Error::Parse {
+                position: iter.st.position,
             });
         }
         let next = peek_or_die(iter)?;
@@ -127,56 +172,36 @@ fn parse_document(iter: &mut Chars, state: &mut ParserState, document: &mut Docu
                 // currently only one processing instruction is supported. no comments are
                 // supported. the xml declaration must either be the first thing in the document
                 // or else omitted.
-                state_must_be_before_declaration(state)?;
-                advance_parser_or_die(iter, state)?;
-                let pi_data = parse_pi(iter, state)?;
+                state_must_be_before_declaration(iter)?;
+                iter.advance_or_die()?;
+                let pi_data = parse_pi(iter)?;
                 document.declaration = parse_declaration(&pi_data)?;
-                state.doc_status = DocStatus::AfterDeclaration;
+                iter.st.doc_status = DocStatus::AfterDeclaration;
             }
             '-' => no_comments()?,
             _ => {
-                document.root = Node::Element(parse_element(iter, state)?);
+                document.root = parse_element(iter)?;
             }
         }
 
-        if !advance_parser(iter, state) {
+        if !iter.advance() {
             break;
         }
     }
     Ok(())
 }
 
-
-pub(crate) fn advance_parser(iter: &mut Chars<'_>, state: &mut ParserState) -> bool {
-    let option_char = iter.next();
-    match option_char {
-        Some(c) => {
-            state.current_char = c;
-            state.position.increment(state.current_char);
-            true
-        }
-        None => false,
-    }
-}
-
-pub(crate) fn advance_parser_or_die(iter: &mut Chars<'_>, state: &mut ParserState) -> Result<()> {
-    if advance_parser(iter, state) {
-        Ok(())
-    } else {
-        Err(error::Error::Parse {
-            position: state.position,
-            backtrace: Backtrace::generate(),
-        })
-    }
-}
-
 fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
     let mut declaration = Declaration::default();
     if pi_data.target != "xml" {
-        return Err(error::Error::Bug { message: "TODO - better message".to_string() });
+        return Err(Error::Bug {
+            message: "TODO - better message".to_string(),
+        });
     }
     if pi_data.instructions.map().len() > 2 {
-        return Err(error::Error::Bug { message: "TODO - better message".to_string() });
+        return Err(Error::Bug {
+            message: "TODO - better message".to_string(),
+        });
     }
     if let Some(val) = pi_data.instructions.map().get("version") {
         match val.as_str() {
@@ -186,7 +211,11 @@ fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
             "1.1" => {
                 declaration.version = Version::OneDotOne;
             }
-            _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
+            _ => {
+                return Err(Error::Bug {
+                    message: "TODO - better message".to_string(),
+                });
+            }
         }
     }
     if let Some(val) = pi_data.instructions.map().get("encoding") {
@@ -194,42 +223,68 @@ fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
             "UTF-8" => {
                 declaration.encoding = Encoding::Utf8;
             }
-            _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
+            _ => {
+                return Err(Error::Bug {
+                    message: "TODO - better message".to_string(),
+                });
+            }
         }
     }
     Ok(declaration)
 }
 
-fn state_must_be_before_declaration(state: &ParserState) -> Result<()> {
-    if state.doc_status != DocStatus::BeforeDeclaration {
-        Err(error::Error::Bug { message: "TODO - better message".to_string() })
+fn state_must_be_before_declaration(iter: &Iter) -> Result<()> {
+    if iter.st.doc_status != DocStatus::BeforeDeclaration {
+        Err(Error::Bug {
+            message: "TODO - better message".to_string(),
+        })
     } else {
         Ok(())
     }
 }
 
-pub(crate) fn peek_or_die(iter: &mut Chars) -> Result<char> {
-    let mut peekable = iter.peekable();
-    let opt = peekable.peek();
+pub(crate) fn peek_or_die(iter: &mut Iter) -> Result<char> {
+    let opt = iter.it.peek();
     match opt {
         Some(c) => Ok(*c),
-        None => Err(error::Error::Bug { message: "TODO - better message".to_string() })
+        None => Err(Error::Bug {
+            message: "TODO - better message".to_string(),
+        }),
     }
 }
 
 fn no_comments() -> Result<()> {
-    Err(error::Error::Bug { message: "comments are not supported".to_string() })
+    Err(Error::Bug {
+        message: "comments are not supported".to_string(),
+    })
 }
 
-fn parse_element(iter: &mut Chars, state: &mut ParserState) -> Result<ElementData> {
-    // TODO - implement
-    while advance_parser(iter, state) {}
-    Ok(ElementData {
-        namespace: Some("foo".to_owned()),
-        name: "bar".to_string(),
-        attributes: Default::default(),
-        nodes: vec![],
-    })
+fn parse_name(iter: &mut Iter) -> Result<String> {
+    let mut name = String::default();
+    if !is_name_start_char(iter.st.c) {
+        return Err(Error::Parse {
+            position: iter.st.position,
+        });
+    }
+    name.push(iter.st.c);
+    loop {
+        if iter.st.c.is_ascii_whitespace() {
+            return Ok(name);
+        }
+        if iter.st.c == '=' {
+            return Ok(name);
+        }
+        if !is_name_char(iter.st.c) {
+            return Err(Error::Parse {
+                position: iter.st.position,
+            });
+        }
+        name.push(iter.st.c);
+        if !iter.advance() {
+            return Ok(name);
+        }
+    }
+    Ok(name)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

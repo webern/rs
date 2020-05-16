@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 
 use crate::{Syntax, XmlFile};
@@ -87,7 +87,7 @@ fn write_good_syntax_test(f: &mut File, xml_file: &XmlFile) {
     writeln!(f, "let xml_str = info.read_xml_file();").unwrap();
     writeln!(f, "let parse_result = ezxml::parse_str(xml_str.as_str());").unwrap();
     writeln!(f, "assert!(parse_result.is_ok());").unwrap();
-    if let Some(expected) = &xml_file.metadata.expected {
+    if xml_file.metadata.expected.is_some() {
         writeln!(f, "let actual = parse_result.unwrap();").unwrap();
         writeln!(f, "let expected = &info.metadata.expected.unwrap();").unwrap();
         writeln!(f, "let equal = expected == &actual;").unwrap();

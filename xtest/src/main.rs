@@ -1,4 +1,3 @@
-use xdoc::Name;
 use xtest::{Metadata, Syntax};
 
 fn main() {

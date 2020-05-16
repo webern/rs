@@ -5,7 +5,7 @@ use snafu::{Backtrace, GenerateBacktrace};
 use xdoc::PIData;
 
 use crate::error::{Error, Result};
-use crate::parser::{advance_parser, ParserState};
+use crate::parser::{advance_parser, Iter, XXXParserState};
 
 use super::chars::{is_name_char, is_name_start_char};
 
@@ -71,19 +71,19 @@ impl PIProcessor {
     }
 }
 
-pub(crate) fn parse_pi(iter: &mut Chars, state: &mut ParserState) -> Result<PIData> {
+pub(crate) fn parse_pi(iter: &mut Iter) -> Result<PIData> {
     let mut processor = PIProcessor::new();
     loop {
-        if let Err(e) = take_processing_instruction_char(iter, state, &mut processor) {
+        if let Err(e) = take_processing_instruction_char(iter, &mut processor) {
             return Err(e);
         }
         if processor.status == PIStatus::Close {
             break;
         }
 
-        if !advance_parser(iter, state) {
+        if !advance_parser(iter) {
             return Err(Error::Parse {
-                position: state.position,
+                position: iter.st.position,
                 backtrace: Backtrace::generate(),
             });
         }
@@ -93,127 +93,126 @@ pub(crate) fn parse_pi(iter: &mut Chars, state: &mut ParserState) -> Result<PIDa
 }
 
 fn take_processing_instruction_char(
-    _iter: &mut Chars,
-    state: &mut ParserState,
+    iter: &mut Iter,
     processor: &mut PIProcessor,
 ) -> Result<()> {
-    let ch = state.c;
+    let ch = iter.st.c;
     println!("{}", ch);
     match processor.status {
         PIStatus::BeforeTarget => {
-            if !is_name_start_char(state.c) {
+            if !is_name_start_char(iter.st.c) {
                 return Err(Error::Parse {
-                    position: state.position,
+                    position: iter.st.position,
                     backtrace: Backtrace::generate(),
                 });
             } else {
-                processor.pi_data.target.push(state.c);
+                processor.pi_data.target.push(iter.st.c);
                 processor.status = PIStatus::InsideTarget;
             }
         }
         PIStatus::InsideTarget => {
-            if state.c.is_ascii_whitespace() {
+            if iter.st.c.is_ascii_whitespace() {
                 processor.status = PIStatus::AfterTarget;
-            } else if !is_name_char(state.c) {
+            } else if !is_name_char(iter.st.c) {
                 return Err(Error::Parse {
-                    position: state.position,
+                    position: iter.st.position,
                     backtrace: Backtrace::generate(),
                 });
             } else {
-                processor.pi_data.target.push(state.c);
+                processor.pi_data.target.push(iter.st.c);
             }
         }
         PIStatus::AfterTarget => {
-            if is_name_start_char(state.c) {
-                processor.key_buffer.push(state.c);
+            if is_name_start_char(iter.st.c) {
+                processor.key_buffer.push(iter.st.c);
                 processor.status = PIStatus::InsideKey;
-            } else if !state.c.is_ascii_whitespace() {
+            } else if !iter.st.c.is_ascii_whitespace() {
                 return Err(Error::Parse {
-                    position: state.position,
+                    position: iter.st.position,
                     backtrace: Backtrace::generate(),
                 });
             }
         }
         PIStatus::InsideKey => {
-            if is_name_char(state.c) {
-                processor.key_buffer.push(state.c);
+            if is_name_char(iter.st.c) {
+                processor.key_buffer.push(iter.st.c);
                 processor.status = PIStatus::InsideKey;
-            } else if state.c == '=' {
+            } else if iter.st.c == '=' {
                 processor.status = PIStatus::Equals;
-            } else if state.c.is_ascii_whitespace() {
+            } else if iter.st.c.is_ascii_whitespace() {
                 processor.status = PIStatus::AfterKey;
             } else {
                 return Err(Error::Parse {
-                    position: state.position,
+                    position: iter.st.position,
                     backtrace: Backtrace::generate(),
                 });
             }
         }
         PIStatus::AfterKey => {
-            if state.c == '=' {
+            if iter.st.c == '=' {
                 processor.status = PIStatus::Equals;
-            } else if !state.c.is_ascii_whitespace() {
+            } else if !iter.st.c.is_ascii_whitespace() {
                 return Err(Error::Parse {
-                    position: state.position,
+                    position: iter.st.position,
                     backtrace: Backtrace::generate(),
                 });
             }
         }
         PIStatus::Equals | PIStatus::AfterEquals => {
-            if state.c == '"' {
+            if iter.st.c == '"' {
                 processor.status = PIStatus::ValOpenQuote;
-            } else if state.c.is_ascii_whitespace() {
+            } else if iter.st.c.is_ascii_whitespace() {
                 processor.status = PIStatus::AfterEquals;
             } else {
                 return Err(Error::Parse {
-                    position: state.position,
+                    position: iter.st.position,
                     backtrace: Backtrace::generate(),
                 });
             }
         }
         PIStatus::ValOpenQuote | PIStatus::InsideVal => {
-            if state.c == '"' {
+            if iter.st.c == '"' {
                 processor.take_buffers()?;
                 processor.status = PIStatus::ValCloseQuote;
             } else {
                 // TODO - handle escape sequences
-                processor.value_buffer.push(state.c);
+                processor.value_buffer.push(iter.st.c);
                 processor.status = PIStatus::InsideVal;
             }
         }
         PIStatus::ValCloseQuote => {
-            if state.c.is_ascii_whitespace() {
+            if iter.st.c.is_ascii_whitespace() {
                 processor.status = PIStatus::AfterVal;
-            } else if state.c == '?' {
+            } else if iter.st.c == '?' {
                 processor.status = PIStatus::QuestionMark;
             } else {
                 return Err(Error::Parse {
-                    position: state.position,
+                    position: iter.st.position,
                     backtrace: Backtrace::generate(),
                 });
             }
         }
         PIStatus::AfterVal => {
-            if state.c.is_ascii_whitespace() {
+            if iter.st.c.is_ascii_whitespace() {
                 processor.status = PIStatus::AfterVal;
-            } else if state.c == '?' {
+            } else if iter.st.c == '?' {
                 processor.status = PIStatus::QuestionMark;
-            } else if is_name_start_char(state.c) {
-                processor.key_buffer.push(state.c);
+            } else if is_name_start_char(iter.st.c) {
+                processor.key_buffer.push(iter.st.c);
                 processor.status = PIStatus::InsideKey;
             } else {
                 return Err(Error::Parse {
-                    position: state.position,
+                    position: iter.st.position,
                     backtrace: Backtrace::generate(),
                 });
             }
         }
         PIStatus::QuestionMark => {
-            if state.c == '>' {
+            if iter.st.c == '>' {
                 processor.status = PIStatus::Close;
             } else {
                 return Err(Error::Parse {
-                    position: state.position,
+                    position: iter.st.position,
                     backtrace: Backtrace::generate(),
                 });
             }

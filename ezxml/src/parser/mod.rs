@@ -1,5 +1,6 @@
 extern crate env_logger;
 
+use std::iter::Peekable;
 use std::str::Chars;
 
 use snafu::{Backtrace, GenerateBacktrace};
@@ -48,7 +49,7 @@ impl Position {
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
-pub(crate) struct ParserState {
+pub(crate) struct XXXParserState {
     pub(crate) position: Position,
     pub(crate) c: char,
     pub(crate) doc_status: DocStatus,
@@ -56,21 +57,59 @@ pub(crate) struct ParserState {
     pub(crate) stack: Option<Stack<crate::Node>>,
 }
 
-pub fn parse_str(s: &str) -> Result<Document> {
-    let mut state = ParserState {
-        position: Default::default(),
-        c: '\0',
-        doc_status: DocStatus::default(),
-        tag_status: TagStatus::OutsideTag,
-        stack: None,
-    };
+pub(crate) struct Iter<'a> {
+    pub(crate) it: Peekable<Chars<'a>>,
+    pub(crate) st: XXXParserState,
+}
 
-    let mut iter = s.chars();
+impl<'a> Iter<'a> {
+    /// Returns an `Iter` primed with the first character, otherwise returns an error.
+    fn new(s: &'a str) -> Result<Self> {
+        let mut i = Iter {
+            it: s.chars().peekable(),
+            st: XXXParserState {
+                position: Default::default(),
+                c: 'x',
+                doc_status: Default::default(),
+                tag_status: Default::default(),
+                stack: None,
+            },
+        };
+        if !i.advance() {
+            return Err(error::Error::Parse { position: Position::default(), backtrace: Backtrace::generate() });
+        }
+        Ok(i)
+    }
+
+    /// Returns `false` if the iterator could not be advanced (end).
+    pub(crate) fn advance(&mut self) -> bool {
+        let option_char = self.it.next();
+        match option_char {
+            Some(c) => {
+                self.st.c = c;
+                self.st.position.increment(self.st.c);
+                true
+            }
+            None => false,
+        }
+    }
+}
+
+pub fn parse_str(s: &str) -> Result<Document> {
+    // let mut state = XXXParserState {
+    //     position: Default::default(),
+    //     c: '\0',
+    //     doc_status: DocStatus::default(),
+    //     tag_status: TagStatus::OutsideTag,
+    //     stack: None,
+    // };
+    //
+    // let mut iter = s.chars();
+    let mut iter = Iter::new(s)?;
     let mut document = Document::new();
-    while advance_parser(&mut iter, &mut state) {
-        let _state = format!("{:?}", state);
-        parse_document(&mut iter, &mut state, &mut document)?;
-        trace!("{:?}", state);
+    while advance_parser(&mut iter) {
+        parse_document(&mut iter, &mut document)?;
+        trace!("{:?}", iter.st);
     }
 
     Ok(document)
@@ -111,65 +150,65 @@ impl Default for DocStatus {
 }
 
 fn parse_document(
-    iter: &mut Chars,
-    state: &mut ParserState,
+    iter: &mut Iter,
     document: &mut Document,
 ) -> Result<()> {
     loop {
-        if state.c.is_ascii_whitespace() {
-            if !advance_parser(iter, state) {
+        if iter.st.c.is_ascii_whitespace() {
+            if !advance_parser(iter) {
                 break;
             }
             continue;
-        } else if state.c != '<' {
+        } else if iter.st.c != '<' {
             return Err(error::Error::Parse {
-                position: state.position,
+                position: iter.st.position,
                 backtrace: Backtrace::generate(),
             });
         }
         let next = peek_or_die(iter)?;
         match next {
             '?' => {
-                // currently only one processing instruction is supported. no comments are
-                // supported. the xml declaration must either be the first thing in the document
-                // or else omitted.
-                state_must_be_before_declaration(state)?;
-                advance_parser_or_die(iter, state)?;
-                let pi_data = parse_pi(iter, state)?;
+// currently only one processing instruction is supported. no comments are
+// supported. the xml declaration must either be the first thing in the document
+// or else omitted.
+                state_must_be_before_declaration(iter)?;
+                advance_parser_or_die(iter)?;
+                let pi_data = parse_pi(iter)?;
                 document.declaration = parse_declaration(&pi_data)?;
-                state.doc_status = DocStatus::AfterDeclaration;
+                iter.st.doc_status = DocStatus::AfterDeclaration;
             }
             '-' => no_comments()?,
             _ => {
-                document.root = parse_element(iter, state)?;
+                document.root = parse_element(iter)?;
             }
         }
 
-        if !advance_parser(iter, state) {
+        if !advance_parser(iter) {
             break;
         }
     }
     Ok(())
 }
 
-pub(crate) fn advance_parser(iter: &mut Chars<'_>, state: &mut ParserState) -> bool {
-    let option_char = iter.next();
-    match option_char {
-        Some(c) => {
-            state.c = c;
-            state.position.increment(state.c);
-            true
-        }
-        None => false,
-    }
+pub(crate) fn advance_parser(iter: &mut Iter<'_>) -> bool {
+    // let option_char = iter.next();
+    // match option_char {
+    //     Some(c) => {
+    //         iter.st.c = c;
+    //         iter.st.position.increment(iter.st.c);
+    //         true
+    //     }
+    //     None => false,
+    // }
+    iter.advance()
 }
 
-pub(crate) fn advance_parser_or_die(iter: &mut Chars<'_>, state: &mut ParserState) -> Result<()> {
-    if advance_parser(iter, state) {
+pub(crate) fn advance_parser_or_die(iter: &mut Iter<'_>) -> Result<()> {
+    if advance_parser(iter) {
         Ok(())
     } else {
         Err(error::Error::Parse {
-            position: state.position,
+            position: iter.st.position,
             backtrace: Backtrace::generate(),
         })
     }
@@ -217,8 +256,8 @@ fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
     Ok(declaration)
 }
 
-fn state_must_be_before_declaration(state: &ParserState) -> Result<()> {
-    if state.doc_status != DocStatus::BeforeDeclaration {
+fn state_must_be_before_declaration(iter: &Iter) -> Result<()> {
+    if iter.st.doc_status != DocStatus::BeforeDeclaration {
         Err(error::Error::Bug {
             message: "TODO - better message".to_string(),
         })
@@ -227,8 +266,8 @@ fn state_must_be_before_declaration(state: &ParserState) -> Result<()> {
     }
 }
 
-pub(crate) fn peek_or_die(iter: &mut Chars) -> Result<char> {
-    let opt = iter.peek();
+pub(crate) fn peek_or_die(iter: &mut Iter) -> Result<char> {
+    let opt = iter.it.peek();
     match opt {
         Some(c) => Ok(*c),
         None => Err(error::Error::Bug {
@@ -243,30 +282,30 @@ fn no_comments() -> Result<()> {
     })
 }
 
-fn parse_name(iter: &mut Chars, state: &mut ParserState) -> Result<String> {
+fn parse_name(iter: &mut Iter) -> Result<String> {
     let mut name = String::default();
-    if !is_name_start_char(state.c) {
+    if !is_name_start_char(iter.st.c) {
         return Err(error::Error::Parse {
-            position: state.position,
+            position: iter.st.position,
             backtrace: Backtrace::generate(),
         });
     }
-    name.push(state.c);
+    name.push(iter.st.c);
     loop {
-        if state.c.is_ascii_whitespace() {
+        if iter.st.c.is_ascii_whitespace() {
             return Ok(name);
         }
-        if state.c == '=' {
+        if iter.st.c == '=' {
             return Ok(name);
         }
-        if !is_name_char(state.c) {
+        if !is_name_char(iter.st.c) {
             return Err(error::Error::Parse {
-                position: state.position,
+                position: iter.st.position,
                 backtrace: Backtrace::generate(),
             });
         }
-        name.push(state.c);
-        if !advance_parser(iter, state) {
+        name.push(iter.st.c);
+        if !advance_parser(iter) {
             return Ok(name);
         }
     }

@@ -5,33 +5,33 @@ use snafu::{Backtrace, GenerateBacktrace};
 use xdoc::ElementData;
 
 use crate::error::{Error, Result};
-use crate::parser::{advance_parser, advance_parser_or_die, parse_name, ParserState};
+use crate::parser::{advance_parser, advance_parser_or_die, Iter, parse_name, XXXParserState};
 use crate::parser::chars::is_name_start_char;
 
-pub(crate) fn parse_element(iter: &mut Chars, state: &mut ParserState) -> Result<ElementData> {
+pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {
     // it is required that the input be the opening '<'
-    if state.c != '<' {
+    if iter.st.c != '<' {
         return Err(Error::Bug {
             message: "Bad string cannot be split".to_string(),
         });
     }
 
     // advance one character to the first position inside the element tag
-    advance_parser_or_die(iter, state)?;
+    advance_parser_or_die(iter)?;
 
     // ignore whitespace before the element name
     loop {
-        if !state.c.is_ascii_whitespace() {
+        if !iter.st.c.is_ascii_whitespace() {
             break;
         }
-        advance_parser_or_die(iter, state)?;
+        advance_parser_or_die(iter)?;
     }
 
-    let name = parse_name(iter, state)?;
+    let name = parse_name(iter)?;
     let mut element = make_named_element(name.as_str())?;
 
     // TODO - implement
-    while advance_parser(iter, state) {}
+    while advance_parser(iter) {}
     Ok(element)
 }
 

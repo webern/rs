@@ -29,7 +29,7 @@ fn generate_readme() {
         false, // add license
         true,  // indent headings
     )
-        .unwrap();
+    .unwrap();
 
     let mut readme = File::create("README.md").unwrap();
     readme.write_all(content.as_bytes()).unwrap();

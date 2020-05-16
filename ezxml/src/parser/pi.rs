@@ -48,11 +48,22 @@ impl PIProcessor {
     fn take_buffers(&mut self) -> Result<()> {
         if self.key_buffer.is_empty() {
             // TODO - better error
-            return Err(Error::Bug { message: "Empty key - this is a bug and should have been detected sooner.".to_string() });
+            return Err(Error::Bug {
+                message: "Empty key - this is a bug and should have been detected sooner."
+                    .to_string(),
+            });
         }
-        if self.pi_data.instructions.mut_map().insert(self.key_buffer.clone(), self.value_buffer.clone()).is_some() {
+        if self
+            .pi_data
+            .instructions
+            .mut_map()
+            .insert(self.key_buffer.clone(), self.value_buffer.clone())
+            .is_some()
+        {
             // TODO - better error
-            return Err(Error::Bug { message: "Duplicate key".to_string() });
+            return Err(Error::Bug {
+                message: "Duplicate key".to_string(),
+            });
         }
         self.key_buffer.clear();
         self.value_buffer.clear();
@@ -81,7 +92,11 @@ pub(crate) fn parse_pi(iter: &mut Chars, state: &mut ParserState) -> Result<PIDa
     Ok(processor.pi_data)
 }
 
-fn take_processing_instruction_char(_iter: &mut Chars, state: &mut ParserState, processor: &mut PIProcessor) -> Result<()> {
+fn take_processing_instruction_char(
+    _iter: &mut Chars,
+    state: &mut ParserState,
+    processor: &mut PIProcessor,
+) -> Result<()> {
     let ch = state.current_char;
     println!("{}", ch);
     match processor.status {

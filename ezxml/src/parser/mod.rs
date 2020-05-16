@@ -8,11 +8,11 @@ pub use ds::Stack;
 use xdoc::{Declaration, Document, ElementData, Encoding, PIData, Version};
 
 use crate::error::{self, Result};
-use crate::Node;
 use crate::parser::pi::parse_pi;
+use crate::Node;
 
-mod pi;
 mod chars;
+mod pi;
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 pub struct Position {
@@ -107,8 +107,11 @@ impl Default for DocStatus {
     }
 }
 
-
-fn parse_document(iter: &mut Chars, state: &mut ParserState, document: &mut Document) -> Result<()> {
+fn parse_document(
+    iter: &mut Chars,
+    state: &mut ParserState,
+    document: &mut Document,
+) -> Result<()> {
     loop {
         if state.current_char.is_ascii_whitespace() {
             if !advance_parser(iter, state) {
@@ -146,7 +149,6 @@ fn parse_document(iter: &mut Chars, state: &mut ParserState, document: &mut Docu
     Ok(())
 }
 
-
 pub(crate) fn advance_parser(iter: &mut Chars<'_>, state: &mut ParserState) -> bool {
     let option_char = iter.next();
     match option_char {
@@ -173,10 +175,14 @@ pub(crate) fn advance_parser_or_die(iter: &mut Chars<'_>, state: &mut ParserStat
 fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
     let mut declaration = Declaration::default();
     if pi_data.target != "xml" {
-        return Err(error::Error::Bug { message: "TODO - better message".to_string() });
+        return Err(error::Error::Bug {
+            message: "TODO - better message".to_string(),
+        });
     }
     if pi_data.instructions.map().len() > 2 {
-        return Err(error::Error::Bug { message: "TODO - better message".to_string() });
+        return Err(error::Error::Bug {
+            message: "TODO - better message".to_string(),
+        });
     }
     if let Some(val) = pi_data.instructions.map().get("version") {
         match val.as_str() {
@@ -186,7 +192,11 @@ fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
             "1.1" => {
                 declaration.version = Version::OneDotOne;
             }
-            _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
+            _ => {
+                return Err(error::Error::Bug {
+                    message: "TODO - better message".to_string(),
+                });
+            }
         }
     }
     if let Some(val) = pi_data.instructions.map().get("encoding") {
@@ -194,7 +204,11 @@ fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
             "UTF-8" => {
                 declaration.encoding = Encoding::Utf8;
             }
-            _ => { return Err(error::Error::Bug { message: "TODO - better message".to_string() }); }
+            _ => {
+                return Err(error::Error::Bug {
+                    message: "TODO - better message".to_string(),
+                });
+            }
         }
     }
     Ok(declaration)
@@ -202,7 +216,9 @@ fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
 
 fn state_must_be_before_declaration(state: &ParserState) -> Result<()> {
     if state.doc_status != DocStatus::BeforeDeclaration {
-        Err(error::Error::Bug { message: "TODO - better message".to_string() })
+        Err(error::Error::Bug {
+            message: "TODO - better message".to_string(),
+        })
     } else {
         Ok(())
     }
@@ -213,12 +229,16 @@ pub(crate) fn peek_or_die(iter: &mut Chars) -> Result<char> {
     let opt = peekable.peek();
     match opt {
         Some(c) => Ok(*c),
-        None => Err(error::Error::Bug { message: "TODO - better message".to_string() })
+        None => Err(error::Error::Bug {
+            message: "TODO - better message".to_string(),
+        }),
     }
 }
 
 fn no_comments() -> Result<()> {
-    Err(error::Error::Bug { message: "comments are not supported".to_string() })
+    Err(error::Error::Bug {
+        message: "comments are not supported".to_string(),
+    })
 }
 
 fn parse_element(iter: &mut Chars, state: &mut ParserState) -> Result<ElementData> {

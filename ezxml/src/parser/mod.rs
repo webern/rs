@@ -9,9 +9,9 @@ use xdoc::{Declaration, Document, ElementData, Encoding, OrdMap, PIData, Version
 
 use crate::error::{self, Result};
 use crate::Node;
-use crate::parser::pi_parser::parse_pi;
+use crate::parser::pi::parse_pi;
 
-mod pi_parser;
+mod pi;
 mod chars;
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]

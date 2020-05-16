@@ -108,6 +108,21 @@ impl Default for TagStatus {
     }
 }
 
+#[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
+enum DocStatus {
+    BeforeDeclaration,
+    AfterDeclaration,
+    BeforeRoot,
+    ProcessingRoot,
+    AfterRoot,
+}
+
+impl Default for DocStatus {
+    fn default() -> Self {
+        DocStatus::BeforeDeclaration
+    }
+}
+
 fn is_space_or_alpha(c: char) -> bool {
     c.is_alphabetic() || c.is_ascii_whitespace()
 }

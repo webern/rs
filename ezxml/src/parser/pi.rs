@@ -73,6 +73,9 @@ impl PIProcessor {
 
 pub(crate) fn parse_pi(iter: &mut Iter) -> Result<PIData> {
     iter.expect('<')?;
+    iter.advance_or_die()?;
+    iter.expect('?')?;
+    iter.advance_or_die()?;
     let mut processor = PIProcessor::new();
     loop {
         take_processing_instruction_char(iter, &mut processor)?;

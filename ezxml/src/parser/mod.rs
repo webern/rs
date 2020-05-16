@@ -9,10 +9,10 @@ pub use ds::Stack;
 use xdoc::{Declaration, Document, ElementData, Encoding, PIData, Version};
 
 use crate::error::{Error, Result};
+use crate::Node;
 use crate::parser::chars::{is_name_char, is_name_start_char};
 use crate::parser::element::parse_element;
 use crate::parser::pi::parse_pi;
-use crate::Node;
 
 mod chars;
 mod element;
@@ -115,6 +115,37 @@ impl<'a> Iter<'a> {
             Ok(())
         } else {
             Err(self.err())
+        }
+    }
+
+    pub(crate) fn is_name_start_char(&self) -> bool {
+        is_name_start_char(self.st.c)
+    }
+
+    pub(crate) fn is_name_char(&self) -> bool {
+        is_name_char(self.st.c)
+    }
+
+    pub(crate) fn is_after_name_char(&self) -> bool {
+        match self.st.c {
+            ' ' | '\t' | '=' | '/' | '>' => true,
+            _ => false
+        }
+    }
+
+    pub(crate) fn expect_name_start_char(&self) -> Result<()> {
+        if !self.is_name_start_char() {
+            Err(self.err())
+        } else {
+            Ok(())
+        }
+    }
+
+    pub(crate) fn expect_name_char(&self) -> Result<()> {
+        if !self.is_name_char() {
+            Err(self.err())
+        } else {
+            Ok(())
         }
     }
 }
@@ -271,28 +302,18 @@ fn no_comments() -> Result<()> {
 }
 
 fn parse_name(iter: &mut Iter) -> Result<String> {
+    iter.expect_name_start_char()?;
     let mut name = String::default();
-    if !is_name_start_char(iter.st.c) {
-        return Err(Error::Parse {
-            position: iter.st.position,
-        });
-    }
     name.push(iter.st.c);
+    iter.advance_or_die();
     loop {
-        if iter.st.c.is_ascii_whitespace() {
-            return Ok(name);
+        if iter.is_after_name_char() {
+            break;
         }
-        if iter.st.c == '=' {
-            return Ok(name);
-        }
-        if !is_name_char(iter.st.c) {
-            return Err(Error::Parse {
-                position: iter.st.position,
-            });
-        }
+        iter.expect_name_char()?;
         name.push(iter.st.c);
         if !iter.advance() {
-            return Ok(name);
+            break;
         }
     }
     Ok(name)

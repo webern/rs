@@ -5,18 +5,11 @@ use snafu::{Backtrace, GenerateBacktrace};
 use xdoc::ElementData;
 
 use crate::error::{Error, Result};
+use crate::parser::{Iter, parse_name, ParserState};
 use crate::parser::chars::is_name_start_char;
-use crate::parser::{parse_name, Iter, ParserState};
 
 pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {
-    // it is required that the input be the opening '<'
-    if iter.st.c != '<' {
-        return Err(Error::Bug {
-            message: "Bad string cannot be split".to_string(),
-        });
-    }
-
-    // advance one character to the first position inside the element tag
+    iter.expect('<');
     iter.advance_or_die()?;
 
     // ignore whitespace before the element name

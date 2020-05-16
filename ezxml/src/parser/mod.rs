@@ -9,14 +9,14 @@ pub use ds::Stack;
 use xdoc::{Declaration, Document, ElementData, Encoding, PIData, Version};
 
 use crate::error::{Error, Result};
-use crate::Node;
 use crate::parser::chars::{is_name_char, is_name_start_char};
 use crate::parser::element::parse_element;
 use crate::parser::pi::parse_pi;
+use crate::Node;
 
 mod chars;
-mod pi;
 mod element;
+mod pi;
 
 #[derive(Debug, Clone, Copy, Eq, PartialOrd, PartialEq, Hash)]
 pub struct Position {
@@ -76,7 +76,9 @@ impl<'a> Iter<'a> {
             },
         };
         if !i.advance() {
-            return Err(Error::Parse { position: Position::default() });
+            return Err(Error::Parse {
+                position: Position::default(),
+            });
         }
         Ok(i)
     }
@@ -103,7 +105,9 @@ impl<'a> Iter<'a> {
     }
 
     pub(crate) fn err(&self) -> Error {
-        Error::Parse { position: self.st.position.clone() }
+        Error::Parse {
+            position: self.st.position.clone(),
+        }
     }
 
     pub(crate) fn expect(&self, expected: char) -> Result<()> {
@@ -162,10 +166,7 @@ impl Default for DocStatus {
     }
 }
 
-fn parse_document(
-    iter: &mut Iter,
-    document: &mut Document,
-) -> Result<()> {
+fn parse_document(iter: &mut Iter, document: &mut Document) -> Result<()> {
     loop {
         if iter.st.c.is_ascii_whitespace() {
             if !iter.advance() {

@@ -5,8 +5,8 @@ use snafu::{Backtrace, GenerateBacktrace};
 use xdoc::ElementData;
 
 use crate::error::{Error, Result};
-use crate::parser::{Iter, parse_name, ParserState};
 use crate::parser::chars::is_name_start_char;
+use crate::parser::{parse_name, Iter, ParserState};
 
 pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {
     // it is required that the input be the opening '<'
@@ -51,7 +51,7 @@ fn make_named_element(input: &str) -> Result<ElementData> {
     Ok(ElementData {
         namespace: match split.0 {
             "" => None,
-            _ => Some(split.0.to_owned())
+            _ => Some(split.0.to_owned()),
         },
         name: split.1.to_string(),
         attributes: Default::default(),

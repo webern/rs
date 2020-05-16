@@ -85,10 +85,7 @@ pub(crate) fn parse_pi(iter: &mut Iter) -> Result<PIData> {
     Ok(processor.pi_data)
 }
 
-fn take_processing_instruction_char(
-    iter: &mut Iter,
-    processor: &mut PIProcessor,
-) -> Result<()> {
+fn take_processing_instruction_char(iter: &mut Iter, processor: &mut PIProcessor) -> Result<()> {
     let ch = iter.st.c;
     println!("{}", ch);
     match processor.status {

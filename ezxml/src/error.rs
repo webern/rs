@@ -21,9 +21,7 @@ pub struct ParseLocation {
 pub enum Error {
     /// A failure while parsing xml.
     #[snafu(display("Failure while parsing: {:?}", position))]
-    Parse {
-        position: Position,
-    },
+    Parse { position: Position },
     IoRead {
         parse_location: ParseLocation,
         source: std::io::Error,

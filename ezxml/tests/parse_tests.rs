@@ -48,6 +48,9 @@ fn good_syntax_ezfile_test() {
     let info = xtest::load("ezfile");
     let xml_str = info.read_xml_file();
     let parse_result = ezxml::parse_str(xml_str.as_str());
+    if let Err(e) = parse_result {
+        panic!("expected parse_result to be Ok, got Err: {}", e);
+    }
     assert!(parse_result.is_ok());
     let actual = parse_result.unwrap();
     let expected = &info.metadata.expected.unwrap();

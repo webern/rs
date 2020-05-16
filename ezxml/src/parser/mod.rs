@@ -105,14 +105,25 @@ impl<'a> Iter<'a> {
     pub(crate) fn err(&self) -> Error {
         Error::Parse { position: self.st.position.clone() }
     }
+
+    pub(crate) fn expect(&self, expected: char) -> Result<()> {
+        if self.st.c == expected {
+            Ok(())
+        } else {
+            Err(self.err())
+        }
+    }
 }
 
 pub fn parse_str(s: &str) -> Result<Document> {
     let mut iter = Iter::new(s)?;
     let mut document = Document::new();
-    while iter.advance() {
+    loop {
         parse_document(&mut iter, &mut document)?;
         trace!("{:?}", iter.st);
+        if !iter.advance() {
+            break;
+        }
     }
     Ok(document)
 }
@@ -173,7 +184,6 @@ fn parse_document(
                 // supported. the xml declaration must either be the first thing in the document
                 // or else omitted.
                 state_must_be_before_declaration(iter)?;
-                iter.advance_or_die()?;
                 let pi_data = parse_pi(iter)?;
                 document.declaration = parse_declaration(&pi_data)?;
                 iter.st.doc_status = DocStatus::AfterDeclaration;

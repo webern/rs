@@ -8,7 +8,7 @@ use snafu::{Backtrace, GenerateBacktrace};
 pub use ds::Stack;
 use xdoc::{Declaration, Document, ElementData, Encoding, PIData, Version};
 
-use crate::error::{self, Result};
+use crate::error::{Error, Result};
 use crate::Node;
 use crate::parser::chars::{is_name_char, is_name_start_char};
 use crate::parser::element::parse_element;
@@ -76,7 +76,7 @@ impl<'a> Iter<'a> {
             },
         };
         if !i.advance() {
-            return Err(error::Error::Parse { position: Position::default(), backtrace: Backtrace::generate() });
+            return Err(Error::Parse { position: Position::default() });
         }
         Ok(i)
     }
@@ -92,6 +92,10 @@ impl<'a> Iter<'a> {
             }
             None => false,
         }
+    }
+
+    pub(crate) fn err(&self) -> Error {
+        Error::Parse { position: self.st.position.clone() }
     }
 }
 
@@ -150,9 +154,8 @@ fn parse_document(
             }
             continue;
         } else if iter.st.c != '<' {
-            return Err(error::Error::Parse {
+            return Err(Error::Parse {
                 position: iter.st.position,
-                backtrace: Backtrace::generate(),
             });
         }
         let next = peek_or_die(iter)?;
@@ -184,9 +187,8 @@ pub(crate) fn advance_parser_or_die(iter: &mut Iter<'_>) -> Result<()> {
     if iter.advance() {
         Ok(())
     } else {
-        Err(error::Error::Parse {
+        Err(Error::Parse {
             position: iter.st.position,
-            backtrace: Backtrace::generate(),
         })
     }
 }
@@ -194,12 +196,12 @@ pub(crate) fn advance_parser_or_die(iter: &mut Iter<'_>) -> Result<()> {
 fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
     let mut declaration = Declaration::default();
     if pi_data.target != "xml" {
-        return Err(error::Error::Bug {
+        return Err(Error::Bug {
             message: "TODO - better message".to_string(),
         });
     }
     if pi_data.instructions.map().len() > 2 {
-        return Err(error::Error::Bug {
+        return Err(Error::Bug {
             message: "TODO - better message".to_string(),
         });
     }
@@ -212,7 +214,7 @@ fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
                 declaration.version = Version::OneDotOne;
             }
             _ => {
-                return Err(error::Error::Bug {
+                return Err(Error::Bug {
                     message: "TODO - better message".to_string(),
                 });
             }
@@ -224,7 +226,7 @@ fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
                 declaration.encoding = Encoding::Utf8;
             }
             _ => {
-                return Err(error::Error::Bug {
+                return Err(Error::Bug {
                     message: "TODO - better message".to_string(),
                 });
             }
@@ -235,7 +237,7 @@ fn parse_declaration(pi_data: &PIData) -> Result<Declaration> {
 
 fn state_must_be_before_declaration(iter: &Iter) -> Result<()> {
     if iter.st.doc_status != DocStatus::BeforeDeclaration {
-        Err(error::Error::Bug {
+        Err(Error::Bug {
             message: "TODO - better message".to_string(),
         })
     } else {
@@ -247,14 +249,14 @@ pub(crate) fn peek_or_die(iter: &mut Iter) -> Result<char> {
     let opt = iter.it.peek();
     match opt {
         Some(c) => Ok(*c),
-        None => Err(error::Error::Bug {
+        None => Err(Error::Bug {
             message: "TODO - better message".to_string(),
         }),
     }
 }
 
 fn no_comments() -> Result<()> {
-    Err(error::Error::Bug {
+    Err(Error::Bug {
         message: "comments are not supported".to_string(),
     })
 }
@@ -262,9 +264,8 @@ fn no_comments() -> Result<()> {
 fn parse_name(iter: &mut Iter) -> Result<String> {
     let mut name = String::default();
     if !is_name_start_char(iter.st.c) {
-        return Err(error::Error::Parse {
+        return Err(Error::Parse {
             position: iter.st.position,
-            backtrace: Backtrace::generate(),
         });
     }
     name.push(iter.st.c);
@@ -276,9 +277,8 @@ fn parse_name(iter: &mut Iter) -> Result<String> {
             return Ok(name);
         }
         if !is_name_char(iter.st.c) {
-            return Err(error::Error::Parse {
+            return Err(Error::Parse {
                 position: iter.st.position,
-                backtrace: Backtrace::generate(),
             });
         }
         name.push(iter.st.c);

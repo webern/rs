@@ -84,7 +84,6 @@ pub(crate) fn parse_pi(iter: &mut Iter) -> Result<PIData> {
         if !iter.advance() {
             return Err(Error::Parse {
                 position: iter.st.position,
-                backtrace: Backtrace::generate(),
             });
         }
     }
@@ -103,7 +102,6 @@ fn take_processing_instruction_char(
             if !is_name_start_char(iter.st.c) {
                 return Err(Error::Parse {
                     position: iter.st.position,
-                    backtrace: Backtrace::generate(),
                 });
             } else {
                 processor.pi_data.target.push(iter.st.c);
@@ -116,7 +114,6 @@ fn take_processing_instruction_char(
             } else if !is_name_char(iter.st.c) {
                 return Err(Error::Parse {
                     position: iter.st.position,
-                    backtrace: Backtrace::generate(),
                 });
             } else {
                 processor.pi_data.target.push(iter.st.c);
@@ -129,7 +126,6 @@ fn take_processing_instruction_char(
             } else if !iter.st.c.is_ascii_whitespace() {
                 return Err(Error::Parse {
                     position: iter.st.position,
-                    backtrace: Backtrace::generate(),
                 });
             }
         }
@@ -144,7 +140,6 @@ fn take_processing_instruction_char(
             } else {
                 return Err(Error::Parse {
                     position: iter.st.position,
-                    backtrace: Backtrace::generate(),
                 });
             }
         }
@@ -154,7 +149,6 @@ fn take_processing_instruction_char(
             } else if !iter.st.c.is_ascii_whitespace() {
                 return Err(Error::Parse {
                     position: iter.st.position,
-                    backtrace: Backtrace::generate(),
                 });
             }
         }
@@ -166,7 +160,6 @@ fn take_processing_instruction_char(
             } else {
                 return Err(Error::Parse {
                     position: iter.st.position,
-                    backtrace: Backtrace::generate(),
                 });
             }
         }
@@ -188,7 +181,6 @@ fn take_processing_instruction_char(
             } else {
                 return Err(Error::Parse {
                     position: iter.st.position,
-                    backtrace: Backtrace::generate(),
                 });
             }
         }
@@ -203,7 +195,6 @@ fn take_processing_instruction_char(
             } else {
                 return Err(Error::Parse {
                     position: iter.st.position,
-                    backtrace: Backtrace::generate(),
                 });
             }
         }
@@ -213,7 +204,6 @@ fn take_processing_instruction_char(
             } else {
                 return Err(Error::Parse {
                     position: iter.st.position,
-                    backtrace: Backtrace::generate(),
                 });
             }
         }

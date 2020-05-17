@@ -350,9 +350,7 @@ fn parse_name(iter: &mut Iter) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    const XML1: &str = r##"
+    const _XML1: &str = r##"
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE something PUBLIC "-//Some//Path//EN" "http://www.example.org/dtds/partwise.dtd">
 <cats>
@@ -368,16 +366,4 @@ mod tests {
   </cat>
 </cats>
     "##;
-
-    fn init_logger() {
-        let _ = env_logger::builder().is_test(true).try_init();
-    }
-
-    // Check if a url with a trailing slash and one without trailing slash can both be parsed
-    // #[test]
-    // fn parse_a_doo_dah() {
-    //     init_logger();
-    //     let the_thing = XML1;
-    //     let _ = parse_str(the_thing).unwrap();
-    // }
 }

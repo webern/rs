@@ -280,41 +280,38 @@ mod tests {
 
     fn assert_ezfile(doc: &Document) {
         let root = doc.root();
-        if let Node::Element(root_data) = root {
-            assert_eq!(root_data.name, "cats");
-            assert_eq!(root_data.namespace, None);
-            assert_eq!(root_data.attributes.map().len(), 0);
-            assert_eq!(root_data.nodes.len(), 2);
-            let bones_element = root_data.nodes.get(0).unwrap();
-            if let Node::Element(bones) = bones_element {
-                assert_eq!(bones.name, "cat");
-                assert_eq!(bones.namespace, None);
-                assert_eq!(bones.attributes.map().len(), 1);
-                assert_eq!(bones.nodes.len(), 0);
-                let name = bones.attributes.map().get("name").unwrap();
-                assert_eq!(name, "bones");
+        let root_data = root;
+        assert_eq!(root_data.name, "cats");
+        assert_eq!(root_data.namespace, None);
+        assert_eq!(root_data.attributes.map().len(), 0);
+        assert_eq!(root_data.nodes.len(), 2);
+        let bones_element = root_data.nodes.get(0).unwrap();
+        if let Node::Element(bones) = bones_element {
+            assert_eq!(bones.name, "cat");
+            assert_eq!(bones.namespace, None);
+            assert_eq!(bones.attributes.map().len(), 1);
+            assert_eq!(bones.nodes.len(), 0);
+            let name = bones.attributes.map().get("name").unwrap();
+            assert_eq!(name, "bones");
+        } else {
+            panic!("bones was supposed to be an element but was not");
+        }
+        let bishop_element = root_data.nodes.get(1).unwrap();
+        if let Node::Element(bishop) = bishop_element {
+            assert_eq!(bishop.name, "cat");
+            assert_eq!(bishop.namespace, None);
+            assert_eq!(bishop.attributes.map().len(), 1);
+            let name = bishop.attributes.map().get("name").unwrap();
+            assert_eq!(name, "bishop");
+            // assert text data
+            assert_eq!(bishop.nodes.len(), 1);
+            if let Node::String(text) = bishop.nodes.get(0).unwrap() {
+                assert_eq!(text, "punks");
             } else {
-                panic!("bones was supposed to be an element but was not");
-            }
-            let bishop_element = root_data.nodes.get(1).unwrap();
-            if let Node::Element(bishop) = bishop_element {
-                assert_eq!(bishop.name, "cat");
-                assert_eq!(bishop.namespace, None);
-                assert_eq!(bishop.attributes.map().len(), 1);
-                let name = bishop.attributes.map().get("name").unwrap();
-                assert_eq!(name, "bishop");
-                // assert text data
-                assert_eq!(bishop.nodes.len(), 1);
-                if let Node::String(text) = bishop.nodes.get(0).unwrap() {
-                    assert_eq!(text, "punks");
-                } else {
-                    panic!("Expected to find a text node but it was not there.");
-                }
-            } else {
-                panic!("bones was supposed to be an element but was not");
+                panic!("Expected to find a text node but it was not there.");
             }
         } else {
-            panic!("the root was not an element");
+            panic!("bones was supposed to be an element but was not");
         }
     }
 
@@ -382,11 +379,11 @@ mod tests {
     }
 
     // TODO - feature flagging is not working for serde
-    #[test]
-    #[cfg(feature = "serde")]
-    fn write_ezfile_as_json() {
-        let doc = create_ezfile();
-        let json_str = serde_json::to_string_pretty(&doc).unwrap();
-        std::fs::write("/Users/mjb/Desktop/ezfile.json", json_str).unwrap();
-    }
+    // #[test]
+    // #[cfg(feature = "serde")]
+    // fn write_ezfile_as_json() {
+    //     let doc = create_ezfile();
+    //     let json_str = serde_json::to_string_pretty(&doc).unwrap();
+    //     std::fs::write("/Users/mjb/Desktop/ezfile.json", json_str).unwrap();
+    // }
 }

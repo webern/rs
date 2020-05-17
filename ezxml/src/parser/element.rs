@@ -1,7 +1,7 @@
 use xdoc::{ElementData, Node, OrdMap};
 
 use crate::error::{Error, Result};
-use crate::parser::{Iter, parse_name};
+use crate::parser::{parse_name, Iter};
 
 pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {
     iter.expect('<')?;

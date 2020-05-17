@@ -39,6 +39,14 @@ pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {
         element.attributes = parse_attributes(iter)?;
     }
 
+    // check and return early if it is an empty, self-closing tag that had attributes
+    if iter.is('/') {
+        println!("It is a self-closing tag with no attributes, i.e. an 'empty' element.");
+        iter.advance_or_die();
+        iter.expect('>')?;
+        return Ok(element);
+    }
+
     // now the only valid char is '>' and we reach the child nodes
     iter.expect('>')?;
     iter.advance_or_die()?;
@@ -92,23 +100,42 @@ fn parse_children(iter: &mut Iter, parent: &mut ElementData) -> Result<()> {
     loop {
         iter.skip_whitespace();
         if iter.is('<') {
-            if iter.peek_is('/') {
-                let end_tag_name = parse_end_tag_name(iter)?;
-                if end_tag_name != parent.fullname() {
-                    return Err(iter.err());
-                }
+            if let Some(node) = handle_left_angle(iter, parent)? {
+                parent.nodes.push(node);
+            } else {
+                // we received 'None' which means that the end tag was parsed
+                return Ok(());
             }
-            let element = parse_element(iter)?;
-            parent.nodes.push(Node::Element(element));
         } else {
             let text = parse_text(iter)?;
             parent.nodes.push(Node::String(text));
+            if iter.is('<') {
+                if let Some(node) = handle_left_angle(iter, parent)? {
+                    parent.nodes.push(node);
+                } else {
+                    // we received 'None' which means that the end tag was parsed
+                    return Ok(());
+                }
+            }
         }
         if !iter.advance() {
             break;
         }
     }
     Ok(())
+}
+
+fn handle_left_angle(iter: &mut Iter, parent: &mut ElementData) -> Result<Option<Node>> {
+    if iter.peek_is('/') {
+        let end_tag_name = parse_end_tag_name(iter)?;
+        if end_tag_name != parent.fullname() {
+            return Err(iter.err(file!(), line!()));
+        }
+        // return None to signal that we have parsed and end tag
+        return Ok(None);
+    }
+    let element = parse_element(iter)?;
+    Ok(Some(Node::Element(element)))
 }
 
 fn parse_end_tag_name(iter: &mut Iter) -> Result<String> {
@@ -129,7 +156,7 @@ fn parse_end_tag_name(iter: &mut Iter) -> Result<String> {
         } else if iter.is_name_char() {
             name.push(iter.st.c);
         } else {
-            return Err(iter.err());
+            return Err(iter.err(file!(), line!()));
         }
     }
     iter.skip_whitespace();
@@ -138,5 +165,11 @@ fn parse_end_tag_name(iter: &mut Iter) -> Result<String> {
 }
 
 fn parse_text(iter: &mut Iter) -> Result<String> {
+    loop {
+        if iter.is('<') {
+            break;
+        }
+        iter.advance_or_die()?;
+    }
     Ok("".to_owned())
 }

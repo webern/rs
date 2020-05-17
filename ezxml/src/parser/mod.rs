@@ -77,6 +77,8 @@ impl<'a> Iter<'a> {
         };
         if !i.advance() {
             return Err(Error::Parse {
+                source_file: file!().to_owned(),
+                source_line: line!(),
                 position: Position::default(),
             });
         }
@@ -100,12 +102,14 @@ impl<'a> Iter<'a> {
         if self.advance() {
             Ok(())
         } else {
-            Err(self.err())
+            Err(self.err(file!(), line!()))
         }
     }
 
-    pub(crate) fn err(&self) -> Error {
+    pub(crate) fn err(&self, file: &str, line: u32) -> Error {
         Error::Parse {
+            source_file: file.to_owned(),
+            source_line: line,
             position: self.st.position.clone(),
         }
     }
@@ -114,7 +118,7 @@ impl<'a> Iter<'a> {
         if self.is(expected) {
             Ok(())
         } else {
-            Err(self.err())
+            Err(self.err(file!(), line!()))
         }
     }
 
@@ -135,7 +139,7 @@ impl<'a> Iter<'a> {
 
     pub(crate) fn expect_name_start_char(&self) -> Result<()> {
         if !self.is_name_start_char() {
-            Err(self.err())
+            Err(self.err(file!(), line!()))
         } else {
             Ok(())
         }
@@ -143,7 +147,7 @@ impl<'a> Iter<'a> {
 
     pub(crate) fn expect_name_char(&self) -> Result<()> {
         if !self.is_name_char() {
-            Err(self.err())
+            Err(self.err(file!(), line!()))
         } else {
             Ok(())
         }
@@ -231,9 +235,7 @@ fn parse_document(iter: &mut Iter, document: &mut Document) -> Result<()> {
             }
             continue;
         } else if iter.st.c != '<' {
-            return Err(Error::Parse {
-                position: iter.st.position,
-            });
+            return Err(iter.err(file!(), line!()));
         }
         let next = peek_or_die(iter)?;
         match next {

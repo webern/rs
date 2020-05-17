@@ -2,6 +2,7 @@
 
 members = [
     "drop-dir",
+    "ds",
     "ezxml",
     "test-dir",
     "xtest",

@@ -70,6 +70,15 @@ impl ElementData {
         Ok(())
     }
 
+    pub fn fullname(&self) -> String {
+        if let Some(ns) = &self.namespace {
+            if !ns.is_empty() {
+                return format!("{}:{}", ns, self.name);
+            }
+        }
+        self.name.clone()
+    }
+
     pub fn write<W>(&self, writer: &mut W, opts: &WriteOpts, depth: usize) -> Result<()>
         where
             W: Write,

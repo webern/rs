@@ -111,7 +111,7 @@ impl<'a> Iter<'a> {
     }
 
     pub(crate) fn expect(&self, expected: char) -> Result<()> {
-        if self.st.c == expected {
+        if self.is(expected) {
             Ok(())
         } else {
             Err(self.err())
@@ -147,6 +147,32 @@ impl<'a> Iter<'a> {
         } else {
             Ok(())
         }
+    }
+
+    pub(crate) fn skip_whitespace(&mut self) -> Result<()> {
+        loop {
+            if !self.is_whitespace() {
+                return Ok(());
+            }
+            if !self.advance() {
+                return Ok(());
+            }
+        }
+    }
+
+    pub(crate) fn is_whitespace(&self) -> bool {
+        self.st.c.is_ascii_whitespace()
+    }
+
+    pub(crate) fn is(&self, value: char) -> bool {
+        self.st.c == value
+    }
+
+    pub(crate) fn peek_is(&mut self, value: char) -> bool {
+        if let Some(&next) = self.it.peek() {
+            return next == value;
+        }
+        false
     }
 }
 

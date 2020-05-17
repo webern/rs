@@ -90,7 +90,7 @@ fn write_good_syntax_test(f: &mut File, xml_file: &XmlFile) {
         f,
         "panic!(\"expected parse_result to be Ok, got Err: {{}}\", e);"
     )
-        .unwrap();
+    .unwrap();
     writeln!(f, "}}").unwrap();
     if xml_file.metadata.expected.is_some() {
         writeln!(f, "let actual = parse_result.unwrap();").unwrap();

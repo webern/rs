@@ -89,12 +89,12 @@ pub(crate) fn parse_pi(iter: &mut Iter) -> Result<PIData> {
 }
 
 fn take_processing_instruction_char(iter: &mut Iter, processor: &mut PIProcessor) -> Result<()> {
-    let ch = iter.st.c;
-    println!("{}", ch);
+    //let ch = iter.st.c;
+    //println!("{}", ch);
     match processor.status {
         PIStatus::BeforeTarget => {
             if !is_name_start_char(iter.st.c) {
-                return Err(iter.err());
+                return Err(iter.err(file!(), line!()));
             } else {
                 processor.pi_data.target.push(iter.st.c);
                 processor.status = PIStatus::InsideTarget;
@@ -104,7 +104,7 @@ fn take_processing_instruction_char(iter: &mut Iter, processor: &mut PIProcessor
             if iter.st.c.is_ascii_whitespace() {
                 processor.status = PIStatus::AfterTarget;
             } else if !is_name_char(iter.st.c) {
-                return Err(iter.err());
+                return Err(iter.err(file!(), line!()));
             } else {
                 processor.pi_data.target.push(iter.st.c);
             }
@@ -114,7 +114,7 @@ fn take_processing_instruction_char(iter: &mut Iter, processor: &mut PIProcessor
                 processor.key_buffer.push(iter.st.c);
                 processor.status = PIStatus::InsideKey;
             } else if !iter.st.c.is_ascii_whitespace() {
-                return Err(iter.err());
+                return Err(iter.err(file!(), line!()));
             }
         }
         PIStatus::InsideKey => {
@@ -126,14 +126,14 @@ fn take_processing_instruction_char(iter: &mut Iter, processor: &mut PIProcessor
             } else if iter.st.c.is_ascii_whitespace() {
                 processor.status = PIStatus::AfterKey;
             } else {
-                return Err(iter.err());
+                return Err(iter.err(file!(), line!()));
             }
         }
         PIStatus::AfterKey => {
             if iter.st.c == '=' {
                 processor.status = PIStatus::Equals;
             } else if !iter.st.c.is_ascii_whitespace() {
-                return Err(iter.err());
+                return Err(iter.err(file!(), line!()));
             }
         }
         PIStatus::Equals | PIStatus::AfterEquals => {
@@ -142,7 +142,7 @@ fn take_processing_instruction_char(iter: &mut Iter, processor: &mut PIProcessor
             } else if iter.st.c.is_ascii_whitespace() {
                 processor.status = PIStatus::AfterEquals;
             } else {
-                return Err(iter.err());
+                return Err(iter.err(file!(), line!()));
             }
         }
         PIStatus::ValOpenQuote | PIStatus::InsideVal => {
@@ -161,7 +161,7 @@ fn take_processing_instruction_char(iter: &mut Iter, processor: &mut PIProcessor
             } else if iter.st.c == '?' {
                 processor.status = PIStatus::QuestionMark;
             } else {
-                return Err(iter.err());
+                return Err(iter.err(file!(), line!()));
             }
         }
         PIStatus::AfterVal => {
@@ -173,14 +173,14 @@ fn take_processing_instruction_char(iter: &mut Iter, processor: &mut PIProcessor
                 processor.key_buffer.push(iter.st.c);
                 processor.status = PIStatus::InsideKey;
             } else {
-                return Err(iter.err());
+                return Err(iter.err(file!(), line!()));
             }
         }
         PIStatus::QuestionMark => {
             if iter.st.c == '>' {
                 processor.status = PIStatus::Close;
             } else {
-                return Err(iter.err());
+                return Err(iter.err(file!(), line!()));
             }
         }
         PIStatus::Close => { /* done */ }

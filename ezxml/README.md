@@ -19,5 +19,5 @@ This initial list gets me to a sort of 'pre-mvp' that can handle only the simple
  * [x] xdoc: serialize the ezfile to json
  * [x] xtest: add the serialized ezfile data to the metadata file as an assertion.
  * [x] ezxml: generate an assertion of the ezfile using build.rs
- * [ ] ezxml: make the parser work so that the ezfile test passes
+ * [x] ezxml: make the parser work so that the ezfile test passes
  * [ ] ezxml: remove these dependencies    Compiling snafu-derive v0.6.3, Compiling snafu v0.6.3

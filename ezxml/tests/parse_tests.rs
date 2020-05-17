@@ -10,21 +10,11 @@ fn bad_syntax_unescaped_angle_test() {
     let err = parse_result.err().unwrap();
     match err {
         ezxml::error::Error::Parse { position, .. } => {
-            assert_eq!(position.absolute, 110);
-            assert_eq!(position.line, 5);
-            assert_eq!(position.column, 5);
+            assert_eq!(position.absolute, 95);
+            assert_eq!(position.line, 4);
+            assert_eq!(position.column, 39);
         }
         _ => panic!("Error was expected to be of type ezxml::error::Error::Parse, but was not."),
-    }
-}
-
-#[test]
-fn good_syntax_difficult_nodes_test() {
-    let info = xtest::load("difficult-nodes");
-    let xml_str = info.read_xml_file();
-    let parse_result = ezxml::parse_str(xml_str.as_str());
-    if let Err(e) = parse_result {
-        panic!("expected parse_result to be Ok, got Err: {}", e);
     }
 }
 
@@ -64,22 +54,5 @@ fn good_syntax_ezfile_test() {
         } else {
             assert!(equal);
         }
-    }
-}
-
-#[test]
-fn bad_syntax_pi_stray_text_test() {
-    let info = xtest::load("pi-stray-text");
-    let xml_str = info.read_xml_file();
-    let parse_result = ezxml::parse_str(xml_str.as_str());
-    assert!(parse_result.is_err());
-    let err = parse_result.err().unwrap();
-    match err {
-        ezxml::error::Error::Parse { position, .. } => {
-            assert_eq!(position.absolute, 85);
-            assert_eq!(position.line, 3);
-            assert_eq!(position.column, 39);
-        }
-        _ => panic!("Error was expected to be of type ezxml::error::Error::Parse, but was not."),
     }
 }

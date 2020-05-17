@@ -20,7 +20,12 @@ pub struct ParseLocation {
 #[snafu(visibility = "pub(crate)")]
 pub enum Error {
     /// A failure while parsing xml.
-    #[snafu(display("{}:{} Failure while parsing: {:?}", source_file, source_line, position))]
+    #[snafu(display(
+        "{}:{} Failure while parsing: {:?}",
+        source_file,
+        source_line,
+        position
+    ))]
     Parse {
         source_file: String,
         source_line: u32,

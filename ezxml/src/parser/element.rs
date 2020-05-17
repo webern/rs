@@ -5,20 +5,20 @@ use snafu::{Backtrace, GenerateBacktrace};
 use xdoc::{ElementData, Node, OrdMap};
 
 use crate::error::{Error, Result};
-use crate::parser::{Iter, parse_name, ParserState};
 use crate::parser::chars::is_name_start_char;
+use crate::parser::{parse_name, Iter, ParserState};
 
 pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {
     iter.expect('<');
     iter.advance_or_die()?;
 
     // ignore whitespace before the element name
-    loop {
-        if !iter.st.c.is_ascii_whitespace() {
-            break;
-        }
-        iter.advance_or_die()?;
-    }
+    // loop {
+    //     if !iter.st.c.is_ascii_whitespace() {
+    //         break;
+    //     }
+    //     iter.advance_or_die()?;
+    // }
 
     let name = parse_name(iter)?;
     let mut element = make_named_element(name.as_str())?;
@@ -28,7 +28,7 @@ pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {
 
     // check and return early if it is an empty, self-closing tag
     if iter.is('/') {
-        println!("It is a self-closing tag with no attributes, i.e. an 'empty' element.");
+        //println!("It is a self-closing tag with no attributes, i.e. an 'empty' element.");
         iter.advance_or_die();
         iter.expect('>')?;
         return Ok(element);
@@ -41,7 +41,7 @@ pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {
 
     // check and return early if it is an empty, self-closing tag that had attributes
     if iter.is('/') {
-        println!("It is a self-closing tag with no attributes, i.e. an 'empty' element.");
+        //println!("It is a self-closing tag with no attributes, i.e. an 'empty' element.");
         iter.advance_or_die();
         iter.expect('>')?;
         return Ok(element);
@@ -111,6 +111,9 @@ fn parse_attributes(iter: &mut Iter) -> Result<OrdMap> {
 fn parse_attribute_value(iter: &mut Iter) -> Result<String> {
     let mut result = String::new();
     loop {
+        if iter.is('<') || iter.is('>') {
+            return Err(iter.err(file!(), line!()));
+        }
         if iter.is('"') {
             break;
         }

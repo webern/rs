@@ -9,10 +9,10 @@ pub use ds::Stack;
 use xdoc::{Declaration, Document, ElementData, Encoding, PIData, Version};
 
 use crate::error::{Error, Result};
-use crate::Node;
 use crate::parser::chars::{is_name_char, is_name_start_char};
 use crate::parser::element::parse_element;
 use crate::parser::pi::parse_pi;
+use crate::Node;
 
 mod chars;
 mod element;
@@ -133,7 +133,7 @@ impl<'a> Iter<'a> {
     pub(crate) fn is_after_name_char(&self) -> bool {
         match self.st.c {
             ' ' | '\t' | '=' | '/' | '>' => true,
-            _ => false
+            _ => false,
         }
     }
 
@@ -377,10 +377,10 @@ mod tests {
     }
 
     // Check if a url with a trailing slash and one without trailing slash can both be parsed
-    #[test]
-    fn parse_a_doo_dah() {
-        init_logger();
-        let the_thing = XML1;
-        let _ = parse_str(the_thing).unwrap();
-    }
+    // #[test]
+    // fn parse_a_doo_dah() {
+    //     init_logger();
+    //     let the_thing = XML1;
+    //     let _ = parse_str(the_thing).unwrap();
+    // }
 }

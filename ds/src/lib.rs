@@ -3,10 +3,12 @@ use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Eq)]
 pub struct Stack<T>(Vec<T>)
-    where T: Clone + Eq + PartialEq + PartialOrd + Hash;
+where
+    T: Clone + Eq + PartialEq + PartialOrd + Hash;
 
 impl<T> Stack<T>
-    where T: Clone + Eq + PartialEq + PartialOrd + Hash
+where
+    T: Clone + Eq + PartialEq + PartialOrd + Hash,
 {
     pub fn new() -> Self {
         Stack(Vec::new())
@@ -55,9 +57,9 @@ impl<T> Stack<T>
     }
 }
 
-
 impl<T: Clone> Clone for Stack<T>
-    where T: Clone + Eq + PartialEq + PartialOrd + Hash
+where
+    T: Clone + Eq + PartialEq + PartialOrd + Hash,
 {
     fn clone(&self) -> Self {
         let mut result: Vec<T> = Vec::new();
@@ -69,7 +71,8 @@ impl<T: Clone> Clone for Stack<T>
 }
 
 impl<T> Default for Stack<T>
-    where T: Clone + Eq + PartialEq + PartialOrd + Hash
+where
+    T: Clone + Eq + PartialEq + PartialOrd + Hash,
 {
     fn default() -> Self {
         Self(Vec::new())
@@ -77,7 +80,8 @@ impl<T> Default for Stack<T>
 }
 
 impl<T: Eq> PartialEq for Stack<T>
-    where T: Clone + Eq + PartialEq + PartialOrd + Hash
+where
+    T: Clone + Eq + PartialEq + PartialOrd + Hash,
 {
     fn eq(&self, other: &Self) -> bool {
         if self.0.len() != other.0.len() {
@@ -93,7 +97,8 @@ impl<T: Eq> PartialEq for Stack<T>
 }
 
 impl<T> Stack<T>
-    where T: Clone + Eq + PartialEq + PartialOrd + Hash
+where
+    T: Clone + Eq + PartialEq + PartialOrd + Hash,
 {
     fn size_le(&self, other: &Self) -> bool {
         self.0.len() < other.0.len()
@@ -105,7 +110,8 @@ impl<T> Stack<T>
 }
 
 impl<T> PartialOrd for Stack<T>
-    where T: Clone + Eq + PartialEq + PartialOrd + Hash
+where
+    T: Clone + Eq + PartialEq + PartialOrd + Hash,
 {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if self.size_le(other) {
@@ -153,7 +159,8 @@ impl<T> PartialOrd for Stack<T>
 }
 
 impl<T> Hash for Stack<T>
-    where T: Clone + Eq + PartialEq + PartialOrd + Hash
+where
+    T: Clone + Eq + PartialEq + PartialOrd + Hash,
 {
     fn hash<H: Hasher>(&self, state: &mut H) {
         for item in self.0.iter() {

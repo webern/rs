@@ -5,8 +5,8 @@ extern crate serde;
 use std::hash::Hash;
 use std::io::Write;
 
-pub use doc::{Declaration, Encoding, Version};
 pub use doc::Document;
+pub use doc::{Declaration, Encoding, Version};
 pub use node::Node;
 pub use nodes::Nodes;
 pub use ord_map::OrdMap;
@@ -23,28 +23,44 @@ mod nodes;
 mod ord_map;
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub struct Name {
     pub namespace: Option<String>,
     pub name: String,
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub struct PIData {
     pub target: String,
     pub instructions: OrdMap,
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 struct Attribute {
     key: String,
     value: String,
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub struct ElementData {
     pub namespace: Option<String>,
     pub name: String,
@@ -80,8 +96,8 @@ impl ElementData {
     }
 
     pub fn write<W>(&self, writer: &mut W, opts: &WriteOpts, depth: usize) -> Result<()>
-        where
-            W: Write,
+    where
+        W: Write,
     {
         if let Err(e) = self.check() {
             return wrap!(e);

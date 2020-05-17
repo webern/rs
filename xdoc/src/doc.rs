@@ -1,11 +1,15 @@
 use std::default::Default;
 use std::io::{Cursor, Write};
 
-use crate::{ElementData, Node};
 use crate::error::Result;
+use crate::{ElementData, Node};
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum Version {
     None,
     One,
@@ -19,7 +23,11 @@ impl Default for Version {
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum Encoding {
     None,
     Utf8,
@@ -32,14 +40,22 @@ impl Default for Encoding {
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash, Default)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub struct Declaration {
     pub version: Version,
     pub encoding: Encoding,
 }
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub struct Document {
     pub declaration: Declaration,
     pub root: ElementData,
@@ -101,8 +117,8 @@ impl WriteOpts {
     }
 
     fn write_repeatedly<W>(writer: &mut W, num: usize, s: &str) -> Result<()>
-        where
-            W: Write,
+    where
+        W: Write,
     {
         let s = std::iter::repeat(s).take(num).collect::<String>();
         if let Err(e) = write!(writer, "{}", s) {
@@ -112,8 +128,8 @@ impl WriteOpts {
     }
 
     pub(crate) fn indent<W>(&self, writer: &mut W, depth: usize) -> Result<()>
-        where
-            W: Write,
+    where
+        W: Write,
     {
         match self.indent {
             Indent::None => {
@@ -134,8 +150,8 @@ impl WriteOpts {
     }
 
     pub(crate) fn newline<W>(&self, writer: &mut W) -> Result<()>
-        where
-            W: Write,
+    where
+        W: Write,
     {
         if let Err(e) = write!(writer, "{}", self.newline_str()) {
             return wrap!(e);
@@ -161,18 +177,17 @@ impl Document {
     }
 
     pub fn write<W>(&self, writer: &mut W) -> Result<()>
-        where
-            W: Write,
+    where
+        W: Write,
     {
         self.write_opts(writer, &WriteOpts::default())
     }
 
     pub fn write_opts<W>(&self, writer: &mut W, opts: &WriteOpts) -> Result<()>
-        where
-            W: Write,
+    where
+        W: Write,
     {
-        if self.declaration.encoding != Encoding::None
-            || self.declaration.version != Version::None
+        if self.declaration.encoding != Encoding::None || self.declaration.version != Version::None
         {
             if let Err(e) = write!(writer, "<?xml ") {
                 return wrap!(e);
@@ -227,8 +242,8 @@ impl Document {
         }
         let data = c.into_inner();
         match std::str::from_utf8(data.as_slice()) {
-            Ok(s) => { Ok(s.to_owned()) }
-            Err(e) => { wrap!(e) }
+            Ok(s) => Ok(s.to_owned()),
+            Err(e) => wrap!(e),
         }
     }
 }
@@ -237,8 +252,8 @@ impl ToString for Document {
     fn to_string(&self) -> String {
         let opts = WriteOpts::default();
         match self.to_string_opts(&opts) {
-            Ok(s) => { s }
-            Err(_) => { "<error/>".to_string() }
+            Ok(s) => s,
+            Err(_) => "<error/>".to_string(),
         }
     }
 }
@@ -260,8 +275,8 @@ macro_rules! map (
 mod tests {
     use std::io::Cursor;
 
-    use crate::*;
     use crate::doc::{Declaration, Encoding, Version};
+    use crate::*;
 
     fn assert_ezfile(doc: &Document) {
         let root = doc.root();
@@ -365,7 +380,6 @@ mod tests {
         assert!(we.is_ok());
         assert_eq!(data_str, EZFILE_STR);
     }
-
 
     // TODO - feature flagging is not working for serde
     #[test]

@@ -96,11 +96,7 @@ fn ext(p: &PathBuf) -> String {
 }
 
 fn name_from_path(p: &PathBuf) -> String {
-    p
-        .file_name()
-        .unwrap()
-        .to_string_lossy()
-        .replace(".xml", "")
+    p.file_name().unwrap().to_string_lossy().replace(".xml", "")
 }
 
 fn metadata_filename_from_name(name: &str) -> String {

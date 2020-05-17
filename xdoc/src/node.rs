@@ -4,7 +4,11 @@ use crate::doc::WriteOpts;
 use crate::error::Result;
 
 #[derive(Debug, Clone, Eq, PartialOrd, PartialEq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum Node {
     // <element>
     Element(crate::ElementData),
@@ -33,8 +37,8 @@ impl Default for Node {
 
 impl Node {
     pub fn write<W>(&self, writer: &mut W, opts: &WriteOpts, depth: usize) -> Result<()>
-        where
-            W: Write,
+    where
+        W: Write,
     {
         match self {
             Node::Element(data) => data.write(writer, opts, depth),

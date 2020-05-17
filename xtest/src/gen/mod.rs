@@ -87,7 +87,11 @@ fn write_good_syntax_test(f: &mut File, xml_file: &XmlFile) {
     writeln!(f, "let xml_str = info.read_xml_file();").unwrap();
     writeln!(f, "let parse_result = ezxml::parse_str(xml_str.as_str());").unwrap();
     writeln!(f, "if let Err(e) = parse_result {{").unwrap();
-    writeln!(f, "panic!(\"expected parse_result to be Ok, got Err: {{}}\", e);").unwrap();
+    writeln!(
+        f,
+        "panic!(\"expected parse_result to be Ok, got Err: {{}}\", e);"
+    )
+    .unwrap();
     writeln!(f, "}}").unwrap();
     if xml_file.metadata.expected.is_some() {
         writeln!(f, "let actual = parse_result.unwrap();").unwrap();
@@ -105,4 +109,3 @@ fn write_good_syntax_test(f: &mut File, xml_file: &XmlFile) {
         writeln!(f, "}}").unwrap();
     }
 }
-

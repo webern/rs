@@ -107,7 +107,7 @@ impl<'a> Iter<'a> {
         Error::Parse {
             source_file: file.to_owned(),
             source_line: line,
-            position: self.st.position.clone(),
+            position: self.st.position,
         }
     }
 
@@ -330,7 +330,7 @@ fn parse_name(iter: &mut Iter) -> Result<String> {
     iter.expect_name_start_char()?;
     let mut name = String::default();
     name.push(iter.st.c);
-    iter.advance_or_die();
+    iter.advance_or_die()?;
     loop {
         if iter.is_after_name_char() {
             break;

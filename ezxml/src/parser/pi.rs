@@ -78,7 +78,7 @@ pub(crate) fn parse_pi(iter: &mut Iter) -> Result<PIData> {
         if processor.status == PIStatus::Close {
             break;
         }
-        iter.advance_or_die();
+        iter.advance_or_die()?;
     }
 
     Ok(processor.pi_data)

@@ -1,12 +1,7 @@
-use std::str::Chars;
-
-use snafu::{Backtrace, GenerateBacktrace};
-
 use xdoc::{ElementData, Node, OrdMap};
 
 use crate::error::{Error, Result};
-use crate::parser::chars::is_name_start_char;
-use crate::parser::{parse_name, Iter, ParserState};
+use crate::parser::{Iter, parse_name};
 
 pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {
     iter.expect('<');
@@ -60,8 +55,8 @@ pub(crate) fn parse_element(iter: &mut Iter) -> Result<ElementData> {
 fn split_element_name(input: &str) -> Result<(&str, &str)> {
     let split: Vec<&str> = input.split(':').collect();
     match split.len() {
-        1 => return Ok(("", split.first().unwrap())),
-        2 => return Ok((split.first().unwrap(), split.last().unwrap())),
+        1 => Ok(("", split.first().unwrap())),
+        2 => Ok((split.first().unwrap(), split.last().unwrap())),
         _ => Err(Error::Bug {
             message: "Bad string cannot be split".to_string(),
         }),
@@ -88,10 +83,11 @@ fn parse_attributes(iter: &mut Iter) -> Result<OrdMap> {
         if iter.is('/') || iter.is('>') {
             break;
         }
-        let mut key = String::default();
-        if iter.is_name_start_char() {
-            key = parse_name(iter)?;
-        }
+        let key = if iter.is_name_start_char() {
+            parse_name(iter)?
+        } else {
+            String::default()
+        };
         iter.skip_whitespace();
         iter.expect('=')?;
         iter.advance_or_die()?;
@@ -178,9 +174,7 @@ fn parse_end_tag_name(iter: &mut Iter) -> Result<String> {
     name.push(iter.st.c);
     loop {
         iter.advance_or_die()?;
-        if iter.is('>') {
-            break;
-        } else if iter.is_whitespace() {
+        if iter.is('>') || iter.is_whitespace() {
             break;
         } else if iter.is_name_char() {
             name.push(iter.st.c);

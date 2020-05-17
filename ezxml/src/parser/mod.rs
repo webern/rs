@@ -3,16 +3,13 @@ extern crate env_logger;
 use std::iter::Peekable;
 use std::str::Chars;
 
-use snafu::{Backtrace, GenerateBacktrace};
-
 pub use ds::Stack;
-use xdoc::{Declaration, Document, ElementData, Encoding, PIData, Version};
+use xdoc::{Declaration, Document, Encoding, PIData, Version};
 
 use crate::error::{Error, Result};
 use crate::parser::chars::{is_name_char, is_name_start_char};
 use crate::parser::element::parse_element;
 use crate::parser::pi::parse_pi;
-use crate::Node;
 
 mod chars;
 mod element;

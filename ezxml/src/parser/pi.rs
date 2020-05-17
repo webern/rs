@@ -1,11 +1,7 @@
-use std::str::Chars;
-
-use snafu::{Backtrace, GenerateBacktrace};
-
 use xdoc::PIData;
 
 use crate::error::{Error, Result};
-use crate::parser::{Iter, ParserState};
+use crate::parser::Iter;
 
 use super::chars::{is_name_char, is_name_start_char};
 

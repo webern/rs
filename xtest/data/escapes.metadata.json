@@ -1,0 +1,24 @@
+{
+  "description": "a few escape sequences",
+  "syntax": {
+    "good": {}
+  },
+  "assertions": [
+    {
+      "path": "/cats/cat[0]/name",
+      "expected": {
+        "attribute": {
+          "value": "bones"
+        }
+      }
+    },
+    {
+      "path": "/cats/cat[1]/name",
+      "expected": {
+        "attribute": {
+          "value": "bishop"
+        }
+      }
+    }
+  ]
+}

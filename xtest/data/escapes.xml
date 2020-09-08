@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<escapes>
+    <a s="&lt;&#128515;&gt;"/>
+    <b name="&amp;">&apos;&quot;&#38;</b>
+</escapes>
